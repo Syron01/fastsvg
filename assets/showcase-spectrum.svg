@@ -1,0 +1,62 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360" width="640" height="360" data-fastsvg-document="spectrum"><title>oklab-renk-calismasi</title>
+  <rect width="640" height="360" fill="#ffffff"/>
+  <rect id="hue-0" x="0" y="36" width="18.77777777777778" height="110" fill="#ea7ca1"/>
+  <rect id="hue-1" x="17.77777777777778" y="36" width="18.77777777777778" height="110" fill="#ee7c90"/>
+  <rect id="hue-2" x="35.55555555555556" y="36" width="18.77777777777778" height="110" fill="#ef7e80"/>
+  <rect id="hue-3" x="53.33333333333333" y="36" width="18.77777777777778" height="110" fill="#ef806f"/>
+  <rect id="hue-4" x="71.11111111111111" y="36" width="18.77777777777778" height="110" fill="#ed835e"/>
+  <rect id="hue-5" x="88.88888888888889" y="36" width="18.77777777777778" height="110" fill="#e9884d"/>
+  <rect id="hue-6" x="106.66666666666666" y="36" width="18.77777777777778" height="110" fill="#e38d3d"/>
+  <rect id="hue-7" x="124.44444444444444" y="36" width="18.77777777777778" height="110" fill="#dc932e"/>
+  <rect id="hue-8" x="142.22222222222223" y="36" width="18.77777777777778" height="110" fill="#d29922"/>
+  <rect id="hue-9" x="160" y="36" width="18.77777777777778" height="110" fill="#c7a01e"/>
+  <rect id="hue-10" x="177.77777777777777" y="36" width="18.77777777777778" height="110" fill="#b9a624"/>
+  <rect id="hue-11" x="195.55555555555557" y="36" width="18.77777777777778" height="110" fill="#aaac31"/>
+  <rect id="hue-12" x="213.33333333333331" y="36" width="18.77777777777778" height="110" fill="#9ab140"/>
+  <rect id="hue-13" x="231.11111111111111" y="36" width="18.77777777777778" height="110" fill="#87b651"/>
+  <rect id="hue-14" x="248.88888888888889" y="36" width="18.77777777777778" height="110" fill="#72ba63"/>
+  <rect id="hue-15" x="266.6666666666667" y="36" width="18.77777777777778" height="110" fill="#5bbd74"/>
+  <rect id="hue-16" x="284.44444444444446" y="36" width="18.77777777777778" height="110" fill="#3fbf86"/>
+  <rect id="hue-17" x="302.22222222222223" y="36" width="18.77777777777778" height="110" fill="#13c097"/>
+  <rect id="hue-18" x="320" y="36" width="18.77777777777778" height="110" fill="#00c0a8"/>
+  <rect id="hue-19" x="337.77777777777777" y="36" width="18.77777777777778" height="110" fill="#00bfb8"/>
+  <rect id="hue-20" x="355.55555555555554" y="36" width="18.77777777777778" height="110" fill="#00bec7"/>
+  <rect id="hue-21" x="373.33333333333337" y="36" width="18.77777777777778" height="110" fill="#00bbd5"/>
+  <rect id="hue-22" x="391.11111111111114" y="36" width="18.77777777777778" height="110" fill="#00b8e1"/>
+  <rect id="hue-23" x="408.88888888888886" y="36" width="18.77777777777778" height="110" fill="#16b3eb"/>
+  <rect id="hue-24" x="426.66666666666663" y="36" width="18.77777777777778" height="110" fill="#3faff3"/>
+  <rect id="hue-25" x="444.44444444444446" y="36" width="18.77777777777778" height="110" fill="#59aaf8"/>
+  <rect id="hue-26" x="462.22222222222223" y="36" width="18.77777777777778" height="110" fill="#6fa4fc"/>
+  <rect id="hue-27" x="480" y="36" width="18.77777777777778" height="110" fill="#839ffc"/>
+  <rect id="hue-28" x="497.77777777777777" y="36" width="18.77777777777778" height="110" fill="#9499fa"/>
+  <rect id="hue-29" x="515.5555555555555" y="36" width="18.77777777777778" height="110" fill="#a494f6"/>
+  <rect id="hue-30" x="533.3333333333334" y="36" width="18.77777777777778" height="110" fill="#b28fef"/>
+  <rect id="hue-31" x="551.1111111111111" y="36" width="18.77777777777778" height="110" fill="#bf8ae6"/>
+  <rect id="hue-32" x="568.8888888888889" y="36" width="18.77777777777778" height="110" fill="#cb86db"/>
+  <rect id="hue-33" x="586.6666666666666" y="36" width="18.77777777777778" height="110" fill="#d582ce"/>
+  <rect id="hue-34" x="604.4444444444445" y="36" width="18.77777777777778" height="110" fill="#de80c0"/>
+  <rect id="hue-35" x="622.2222222222222" y="36" width="18.77777777777778" height="110" fill="#e57db1"/>
+  <rect id="scale-0-0" x="0" y="196" width="65" height="52" fill="#172554"/>
+  <rect id="scale-0-1" x="64" y="196" width="65" height="52" fill="#293966"/>
+  <rect id="scale-0-2" x="128" y="196" width="65" height="52" fill="#3c4d78"/>
+  <rect id="scale-0-3" x="192" y="196" width="65" height="52" fill="#50628b"/>
+  <rect id="scale-0-4" x="256" y="196" width="65" height="52" fill="#66779d"/>
+  <rect id="scale-0-5" x="320" y="196" width="65" height="52" fill="#7c8db0"/>
+  <rect id="scale-0-6" x="384" y="196" width="65" height="52" fill="#93a4c3"/>
+  <rect id="scale-0-7" x="448" y="196" width="65" height="52" fill="#aabbd7"/>
+  <rect id="scale-0-8" x="512" y="196" width="65" height="52" fill="#c2d2ea"/>
+  <rect id="scale-0-9" x="576" y="196" width="65" height="52" fill="#dbeafe"/>
+  <rect id="scale-1-0" x="0" y="264" width="65" height="52" fill="#4a044e"/>
+  <rect id="scale-1-1" x="64" y="264" width="65" height="52" fill="#5d2260"/>
+  <rect id="scale-1-2" x="128" y="264" width="65" height="52" fill="#703a73"/>
+  <rect id="scale-1-3" x="192" y="264" width="65" height="52" fill="#835286"/>
+  <rect id="scale-1-4" x="256" y="264" width="65" height="52" fill="#966a9a"/>
+  <rect id="scale-1-5" x="320" y="264" width="65" height="52" fill="#aa82ad"/>
+  <rect id="scale-1-6" x="384" y="264" width="65" height="52" fill="#be9bc1"/>
+  <rect id="scale-1-7" x="448" y="264" width="65" height="52" fill="#d2b4d6"/>
+  <rect id="scale-1-8" x="512" y="264" width="65" height="52" fill="#e6ceea"/>
+  <rect id="scale-1-9" x="576" y="264" width="65" height="52" fill="#fae8ff"/>
+  <rect id="divider" x="0" y="180" width="640" height="1" fill="#000000" fill-opacity="0.4"/>
+  <rect id="tick-hue" x="0" y="26" width="42" height="2" fill="#000000" fill-opacity="0.7"/>
+  <rect id="tick-scale" x="0" y="188" width="42" height="2" fill="#000000" fill-opacity="0.7"/>
+</svg>

@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>FastSVG — gallery, made by the engine</title>
+<style>
+  :root {
+    --bg: #050505;
+    --panel: #0c0c0d;
+    --line: #1c1c1f;
+    --text: #e7e5e0;
+    --dim: #8a8880;
+    --accent: #e0532f;
+    --accent-2: #a3e635;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: ui-monospace, "Cascadia Code", "SF Mono", Menlo, Consolas, monospace;
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+  ::selection { background: var(--accent); color: #000; }
+
+  /* ince gren dokusu — %4'ü geçmez, sadece zemini kırar */
+  body::before {
+    content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 0; opacity: .04;
+    background-image: radial-gradient(#fff 0.5px, transparent 0.5px);
+    background-size: 3px 3px;
+  }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 0 24px; position: relative; z-index: 1; }
+
+  /* giriş: bir kez, kısa, ease-out */
+  @media (prefers-reduced-motion: no-preference) {
+    .rise { animation: rise .6s ease-out both; }
+    .rise-1 { animation-delay: .08s; } .rise-2 { animation-delay: .16s; } .rise-3 { animation-delay: .24s; }
+    @keyframes rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+  }
+
+  header { padding: 120px 0 72px; }
+  .kicker { color: var(--dim); font-size: 12px; letter-spacing: 5px; text-transform: uppercase; }
+  .kicker::before { content: "◆ "; color: var(--accent); }
+  h1 {
+    font-size: clamp(48px, 8.5vw, 118px);
+    line-height: .98;
+    letter-spacing: -0.03em;
+    font-weight: 700;
+    margin: 20px 0 28px;
+  }
+  h1 .fade { color: var(--dim); }
+  .lede { max-width: 560px; color: var(--dim); font-size: 15px; }
+  .lede b { color: var(--text); font-weight: 600; }
+
+  .meta {
+    display: flex; gap: 32px; flex-wrap: wrap; margin-top: 40px;
+    font-size: 12px; color: var(--dim);
+  }
+  .meta span b { color: var(--text); font-weight: 600; display: block; font-size: 18px; letter-spacing: -0.02em; }
+
+  section { padding: 48px 0; }
+  .sec-head {
+    display: flex; align-items: baseline; gap: 16px;
+    border-top: 1px solid var(--line); padding-top: 20px; margin-bottom: 32px;
+  }
+  .sec-head h2 { font-size: 13px; letter-spacing: 4px; text-transform: uppercase; font-weight: 600; }
+  .sec-head .no { color: var(--accent); font-size: 12px; }
+  .sec-head .hint { margin-left: auto; color: var(--dim); font-size: 12px; }
+
+  .grid { display: grid; grid-template-columns: repeat(12, 1fr); gap: 24px; }
+  .card {
+    grid-column: span 4;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    padding: 14px;
+    transition: border-color .2s ease-out;
+  }
+  .card:hover { border-color: #3a3a40; }
+  .card.wide { grid-column: span 8; }
+  .card img { display: block; width: 100%; height: auto; }
+  .card .cap { display: flex; justify-content: space-between; gap: 12px; padding: 12px 4px 2px; font-size: 12px; }
+  .card .cap .t { color: var(--text); }
+  .card .cap .n { color: var(--dim); white-space: nowrap; }
+
+  .method { display: grid; grid-template-columns: repeat(12, 1fr); gap: 24px; }
+  .method .step { grid-column: span 4; color: var(--dim); font-size: 13px; }
+  .method .step b { color: var(--text); display: block; margin-bottom: 6px; font-size: 13px; }
+  .method .step .k { color: var(--accent-2); margin-right: 8px; }
+
+  pre {
+    background: var(--panel); border: 1px solid var(--line);
+    padding: 20px 24px; font-size: 13px; overflow-x: auto; color: #c9c7c1;
+  }
+  pre .c { color: var(--dim); }
+
+  footer {
+    border-top: 1px solid var(--line); margin-top: 64px; padding: 28px 0 48px;
+    color: var(--dim); font-size: 12px;
+    display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+  }
+  footer a { color: var(--text); text-decoration: none; border-bottom: 1px solid var(--line); }
+  footer a:hover { border-color: var(--accent); }
+
+  @media (max-width: 860px) {
+    .card, .card.wide, .method .step { grid-column: span 12; }
+    header { padding: 80px 0 48px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <p class="kicker rise">FastSVG · engine-made gallery</p>
+    <h1 class="rise rise-1">Drawn by math,<br/><span class="fade">not by hand.</span></h1>
+    <p class="lede rise rise-2">
+      Every piece below is output of the FastSVG engine: <b>Scene IR</b> nodes,
+      <b>OKLab</b> color interpolation, gradients sampled through a 256-step LUT.
+      No coordinate in these files was guessed — each one is a computed value.
+    </p>
+    <div class="meta rise rise-3">
+      <span><b>3</b> generators</span>
+      <span><b>103</b> scene nodes</span>
+      <span><b>12 KB</b> total vector weight</span>
+      <span><b>0</b> runtime dependencies</span>
+    </div>
+  </header>
+
+  <section>
+    <div class="sec-head">
+      <span class="no">001</span>
+      <h2>Generated stills</h2>
+      <span class="hint">scripts/showcase-fastsvg.mts</span>
+    </div>
+    <div class="grid">
+      <figure class="card wide">
+        <img src="../assets/showcase-aurora.svg" alt="Aurora: layered wave silhouettes under a gradient night sky"/>
+        <figcaption class="cap">
+          <span class="t">aurora — five sine silhouettes, moon halo as radial LUT</span>
+          <span class="n">15 nodes · 3 KB</span>
+        </figcaption>
+      </figure>
+      <figure class="card">
+        <img src="../assets/showcase-orbits.svg" alt="Orbits: two circle clusters intersecting on the golden section"/>
+        <figcaption class="cap">
+          <span class="t">orbits — φ-section, true intersection points</span>
+          <span class="n">29 nodes · 3 KB</span>
+        </figcaption>
+      </figure>
+      <figure class="card wide">
+        <img src="../assets/showcase-spectrum.svg" alt="Spectrum: OKLab hue wheel band and two perceptual tone scales"/>
+        <figcaption class="cap">
+          <span class="t">spectrum — OKLch hue wheel · perceptual tone scales</span>
+          <span class="n">59 nodes · 6 KB</span>
+        </figcaption>
+      </figure>
+      <figure class="card">
+        <img src="../assets/demo-gradient.svg" alt="Animated gradient demo"/>
+        <figcaption class="cap">
+          <span class="t">motion — SMIL export</span>
+          <span class="n">timeline → SVG</span>
+        </figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head">
+      <span class="no">002</span>
+      <h2>How a still is born</h2>
+      <span class="hint">all three steps are typed, pure functions</span>
+    </div>
+    <div class="method">
+      <div class="step"><b><span class="k">01</span>Scene IR</b>Geometry lands as typed nodes in a scene document — atomic patches, no SVG strings.</div>
+      <div class="step"><b><span class="k">02</span>Color engine</b>Palettes are interpolated in OKLab, so mid-tones never drift muddy.</div>
+      <div class="step"><b><span class="k">03</span>Export</b>Same scene → editable SVG for browsers, or scanline-rasterized PNG with gradient LUTs.</div>
+    </div>
+    <pre style="margin-top:24px"><span class="c"># regenerate every piece on this page</span>
+npx tsx scripts/showcase-fastsvg.mts</pre>
+  </section>
+
+  <footer>
+    <span>FastSVG · MIT</span>
+    <span><a href="demo.html">interactive demo</a> · <a href="https://github.com/Syron01/fastsvg">github.com/Syron01/fastsvg</a></span>
+  </footer>
+
+</div>
+</body>
+</html>

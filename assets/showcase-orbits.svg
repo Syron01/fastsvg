@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360" width="640" height="360" data-fastsvg-document="orbits"><title>altin-oran-geometrisi</title>
+  <rect width="640" height="360" fill="#f5f2ea"/>
+  <rect id="grid-1" x="53" y="40" width="1" height="280" fill="#101014" fill-opacity="0.06"/>
+  <rect id="grid-2" x="107" y="40" width="1" height="280" fill="#101014" fill-opacity="0.06"/>
+  <rect id="grid-3" x="160" y="40" width="1" height="280" fill="#101014" fill-opacity="0.06"/>
+  <rect id="grid-4" x="213" y="40" width="1" height="280" fill="#101014" fill-opacity="0.06"/>
+  <rect id="grid-5" x="267" y="40" width="1" height="280" fill="#101014" fill-opacity="0.06"/>
+  <rect id="grid-6" x="320" y="40" width="1" height="280" fill="#101014" fill-opacity="0.06"/>
+  <rect id="grid-7" x="373" y="40" width="1" height="280" fill="#101014" fill-opacity="0.06"/>
+  <rect id="grid-8" x="427" y="40" width="1" height="280" fill="#101014" fill-opacity="0.06"/>
+  <rect id="grid-9" x="480" y="40" width="1" height="280" fill="#101014" fill-opacity="0.06"/>
+  <rect id="grid-10" x="533" y="40" width="1" height="280" fill="#101014" fill-opacity="0.06"/>
+  <rect id="grid-11" x="587" y="40" width="1" height="280" fill="#101014" fill-opacity="0.06"/>
+  <circle id="ring-a-0" cx="395.5417527999327" cy="180" r="22" fill="#101014" fill-opacity="0.08"/>
+  <circle id="ring-b-0" cx="244.45824720006732" cy="180" r="22" fill="#101014" fill-opacity="0.05"/>
+  <circle id="ring-a-1" cx="395.5417527999327" cy="180" r="44" fill="#101014" fill-opacity="0.1"/>
+  <circle id="ring-b-1" cx="244.45824720006732" cy="180" r="44" fill="#101014" fill-opacity="0.062"/>
+  <circle id="ring-a-2" cx="395.5417527999327" cy="180" r="66" fill="#101014" fill-opacity="0.12"/>
+  <circle id="ring-b-2" cx="244.45824720006732" cy="180" r="66" fill="#101014" fill-opacity="0.07400000000000001"/>
+  <circle id="ring-a-3" cx="395.5417527999327" cy="180" r="88" fill="#101014" fill-opacity="0.14"/>
+  <circle id="ring-b-3" cx="244.45824720006732" cy="180" r="88" fill="#101014" fill-opacity="0.08600000000000001"/>
+  <circle id="ring-a-4" cx="395.5417527999327" cy="180" r="110" fill="#101014" fill-opacity="0.16"/>
+  <circle id="ring-b-4" cx="244.45824720006732" cy="180" r="110" fill="#101014" fill-opacity="0.098"/>
+  <circle id="ring-a-5" cx="395.5417527999327" cy="180" r="132" fill="#101014" fill-opacity="0.18"/>
+  <circle id="ring-b-5" cx="244.45824720006732" cy="180" r="132" fill="#101014" fill-opacity="0.11"/>
+  <circle id="core-accent" cx="244.45824720006732" cy="180" r="30" fill="#e0532f"/>
+  <circle id="node-top" cx="320" cy="134.86194971076105" r="5" fill="#e0532f"/>
+  <circle id="node-bottom" cx="320" cy="225.13805028923895" r="5" fill="#e0532f"/>
+  <rect id="axis" x="40" y="180" width="560" height="1" fill="#101014" fill-opacity="0.35"/>
+  <rect id="axis-mark-a" x="387.5417527999327" y="180" width="17" height="1" fill="#101014" fill-opacity="0.9"/>
+  <rect id="axis-mark-b" x="236.45824720006732" y="180" width="17" height="1" fill="#101014" fill-opacity="0.9"/>
+</svg>
