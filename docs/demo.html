@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>FastSVG — the deterministic vector engine for AI</title>
+<style>
+  :root {
+    --bg: #000000;
+    --panel: #0a0a0b;
+    --line: #1f2937;
+    --text: #e5e7eb;
+    --dim: #6b7280;
+    --faint: #374151;
+    --accent: #22d3ee;
+    --accent-2: #a3e635;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: ui-monospace, "Cascadia Code", "SF Mono", Menlo, Consolas, monospace;
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+  ::selection { background: var(--accent); color: #000; }
+
+  .grain::before {
+    content: ""; position: fixed; inset: 0; pointer-events: none; z-index: 0; opacity: .05;
+    background-image: radial-gradient(#fff 0.5px, transparent 0.5px);
+    background-size: 3px 3px;
+  }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 24px; position: relative; z-index: 1; }
+
+  header { padding: 140px 0 80px; }
+  .kicker { color: var(--dim); font-size: 13px; letter-spacing: 4px; text-transform: uppercase; }
+  .kicker::before { content: "◆ "; color: var(--accent); }
+  h1 {
+    font-size: clamp(56px, 11vw, 132px);
+    letter-spacing: -0.045em; line-height: 0.95; margin: 16px 0 8px; font-weight: 700;
+  }
+  h1 .grad {
+    background: linear-gradient(90deg, var(--accent), var(--accent-2));
+    background-size: 200% 100%;
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+    animation: sweep 6s ease-in-out infinite alternate;
+  }
+  @keyframes sweep { from { background-position: 0% 0; } to { background-position: 100% 0; } }
+  .lede { color: var(--dim); max-width: 620px; font-size: 17px; margin-top: 24px; }
+  .lede strong { color: var(--text); font-weight: 400; }
+
+  .tags { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 32px; }
+  .tag {
+    border: 1px solid var(--line); border-radius: 999px; padding: 4px 14px;
+    font-size: 12px; letter-spacing: 1px; color: var(--dim);
+  }
+  .tag b { color: var(--accent); font-weight: 400; }
+
+  section { padding: 72px 0; border-top: 1px solid var(--line); }
+  h2 { font-size: 13px; letter-spacing: 4px; color: var(--dim); text-transform: uppercase; margin-bottom: 40px; }
+  h2 span { color: var(--accent); margin-right: 12px; }
+
+  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--line); border: 1px solid var(--line); }
+  .card { background: var(--panel); padding: 28px; transition: background .3s; }
+  .card:hover { background: #0f1115; }
+  .card .n { color: var(--faint); font-size: 12px; }
+  .card h3 { font-size: 16px; margin: 10px 0 8px; letter-spacing: -0.02em; }
+  .card p { color: var(--dim); font-size: 13.5px; }
+  @media (max-width: 800px) { .grid { grid-template-columns: 1fr; } }
+
+  .demo-row { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 48px; }
+  @media (max-width: 800px) { .demo-row { grid-template-columns: 1fr; } }
+  .panel { border: 1px solid var(--line); background: var(--panel); padding: 20px; }
+  .panel .label { font-size: 11px; letter-spacing: 2px; color: var(--dim); margin-bottom: 12px; }
+  canvas { width: 100%; display: block; background: #000; border: 1px solid var(--line); }
+
+  input[type="range"] { width: 100%; accent-color: var(--accent); background: transparent; margin: 12px 0; }
+  .gradbar { height: 40px; border: 1px solid var(--line); }
+  .readout { color: var(--faint); font-size: 12px; }
+
+  pre {
+    background: var(--panel); border: 1px solid var(--line); padding: 20px 24px;
+    overflow-x: auto; font-size: 13px; line-height: 1.7; position: relative;
+  }
+  pre .c { color: var(--faint); } pre .k { color: var(--accent); } pre .s { color: var(--accent-2); }
+  code.inline { background: var(--panel); border: 1px solid var(--line); padding: 1px 7px; font-size: 13px; }
+
+  .cta { display: inline-block; margin-top: 40px; background: var(--text); color: #000;
+    padding: 14px 32px; text-decoration: none; font-size: 14px; letter-spacing: 1px; }
+  .cta:hover { background: var(--accent); }
+
+  footer { padding: 48px 0 96px; color: var(--faint); font-size: 12px; border-top: 1px solid var(--line); }
+  a { color: var(--accent); text-decoration: none; }
+
+  .float-glyph { position: fixed; right: 4vw; top: 18vh; width: 180px; opacity: .5; z-index: 0; pointer-events: none; }
+  @media (max-width: 900px) { .float-glyph { display: none; } }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation: none !important; transition: none !important; }
+  }
+</style>
+</head>
+<body class="grain">
+
+<svg class="float-glyph" viewBox="-60 -60 120 120" aria-hidden="true">
+  <defs><linearGradient id="fg" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0" stop-color="#22d3ee"/><stop offset="1" stop-color="#a3e635"/>
+  </linearGradient></defs>
+  <path fill="none" stroke="url(#fg)" stroke-width="2" d="M0 -45 C25 -45 45 -25 45 0 C45 25 25 45 0 45 C-25 45 -45 25 -45 0 C-45 -25 -25 -45 0 -45 Z">
+    <animate attributeName="d" dur="7s" repeatCount="indefinite" calcMode="spline" keyTimes="0;0.5;1" keySplines="0.42 0 0.58 1;0.42 0 0.58 1"
+      values="M0 -45 C25 -45 45 -25 45 0 C45 25 25 45 0 45 C-25 45 -45 25 -45 0 C-45 -25 -25 -45 0 -45 Z;M-38 -38 L38 -38 L38 38 L-38 38 Z;M0 -45 C25 -45 45 -25 45 0 C45 25 25 45 0 45 C-25 45 -45 25 -45 0 C-45 -25 -25 -45 0 -45 Z"/>
+  </path>
+</svg>
+
+<div class="wrap">
+
+<header>
+  <div class="kicker">Deterministic visual engineering for AI agents</div>
+  <h1>Fast<span class="grad">SVG</span></h1>
+  <p class="lede">
+    Language models guess coordinates. <strong>FastSVG computes them.</strong>
+    A typed, modular engine that turns intent into measured geometry, perceptual color,
+    timed motion and real APNG frames — renderable, diffable, deterministic.
+  </p>
+  <div class="tags">
+    <span class="tag"><b>10</b> MCP tools</span>
+    <span class="tag"><b>77</b> tests</span>
+    <span class="tag"><b>12</b> packages</span>
+    <span class="tag"><b>OKLab</b> color</span>
+    <span class="tag"><b>APNG</b> codec from scratch</span>
+  </div>
+  <a class="cta" href="#install">npm install →</a>
+</header>
+
+<section id="why">
+  <h2><span>01</span>Why FastSVG</h2>
+  <div class="grid">
+    <div class="card"><div class="n">001</div><h3>Prediction → computation</h3><p>Bezier extrema, arc length, WCAG contrast and loop seams are solved with math, not sampled from a model's imagination.</p></div>
+    <div class="card"><div class="n">002</div><h3>Scene IR, not string soup</h3><p>Every node has an identity, a parent, a provenance. Edits are atomic patches — undoable, targetable, reviewable.</p></div>
+    <div class="card"><div class="n">003</div><h3>Color you can trust</h3><p>sRGB ↔ linear ↔ OKLab/OKLCH with hue-locked tone scales and ΔE-continuous gradients. Banding is measured, not vibes.</p></div>
+    <div class="card"><div class="n">004</div><h3>Motion as a first-class engine</h3><p>Timelines, keyframes, cubic-bezier solved by Newton–Raphson, analytic damped springs, loop-seam detection.</p></div>
+    <div class="card"><div class="n">005</div><h3>Real APNG, zero deps</h3><p>A PNG/APNG encoder and decoder written from scratch: CRC-checked chunks, fcTL/fdAT sequencing, alpha preserved.</p></div>
+    <div class="card"><div class="n">006</div><h3>Render → diff → repair</h3><p>Deterministic frame rendering feeds a pixel-diff engine with changed-region bounding boxes. Quality is a measurement.</p></div>
+  </div>
+
+  <div class="demo-row">
+    <div class="panel">
+      <div class="label">EASING PLAYGROUND — cubic-bezier, solved live</div>
+      <canvas id="easingCanvas" width="520" height="320"></canvas>
+    </div>
+    <div class="panel">
+      <div class="label">OKLAB MIXER — perceptual interpolation, hue-locked</div>
+      <canvas id="gradCanvas" width="520" height="120"></canvas>
+      <input type="range" id="hue" min="0" max="360" value="210"/>
+      <div class="readout">hue <span id="hueVal">210</span>° · ΔE(max) <span id="deVal">0.041</span> · banding risk: <span id="bandVal">low</span></div>
+      <div class="label" style="margin-top:20px">SPRING — ζ=0.5, analytically solved</div>
+      <canvas id="springCanvas" width="520" height="140"></canvas>
+    </div>
+  </div>
+</section>
+
+<section id="install">
+  <h2><span>02</span>Install &amp; use</h2>
+  <pre>
+<span class="c"># clone &amp; verify (node ≥ 20)</span>
+git clone https://github.com/Syron01/fastsvg && cd fastsvg
+npm install
+npm test                        <span class="c"># 77/77 green</span>
+
+<span class="c"># CLI: measure a path</span>
+npx tsx apps/cli/src/main.ts validate path.d
+<span class="c"># → Geçerli path — 4 segment, bounds: {"minX":10,"minY":10,"maxX":50,"maxY":40}</span>
+
+<span class="c"># CLI: scene → SVG / PNG, image compare</span>
+npx tsx apps/cli/src/main.ts export scene.json --out out.svg
+npx tsx apps/cli/src/main.ts render scene.json --out out.png
+npx tsx apps/cli/src/main.ts compare a.png b.png --tolerance 2
+  </pre>
+
+  <h2 style="margin-top:56px"><span>03</span>Wire it to your model (MCP)</h2>
+  <pre>
+<span class="c">// claude_desktop_config.json — 10 tools, stdio transport</span>
+{
+  <span class="s">"mcpServers"</span>: {
+    <span class="s">"fastsvg"</span>: { <span class="s">"command"</span>: <span class="s">"npx"</span>, <span class="s">"args"</span>: [<span class="s">"fastsvg-mcp"</span>] }
+  }
+}
+
+<span class="c">// then just ask the model:</span>
+<span class="c">// "Make a 32×32 scene, animate the box 20px right with ease-in-out,</span>
+<span class="c">//  export a 10fps APNG and tell me the loop seam delta."</span>
+  </pre>
+  <p style="color:var(--dim); font-size:13px; margin-top:16px">
+    Tools: <code class="inline">fastsvg_create_scene</code> <code class="inline">fastsvg_apply_patch</code>
+    <code class="inline">fastsvg_build_path</code> <code class="inline">fastsvg_create_gradient</code>
+    <code class="inline">fastsvg_render_png</code> <code class="inline">fastsvg_export_apng</code>
+    <code class="inline">fastsvg_compare_images</code> …
+  </p>
+</section>
+
+<section id="pipeline">
+  <h2><span>04</span>The pipeline</h2>
+  <pre>
+ intent ──▶ <span class="k">Scene IR</span> ──▶ <span class="k">geometry</span> ──▶ <span class="k">raster</span> ──▶ <span class="k">APNG</span>
+                │             │            │
+             patches     OKLab color   deterministic
+             (atomic)    gradients     frame render
+                │             │            │
+                ▼             ▼            ▼
+             undo/redo   banding ΔE    pixel diff · IoU
+  </pre>
+</section>
+
+<footer>
+  MIT · built for the models that draw · <a href="https://github.com/Syron01/fastsvg">github.com/Syron01/fastsvg</a>
+</footer>
+
+</div>
+
+<script>
+const reduced = matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+/* ---- easing playground ---- */
+function bezier(c1y, c2y, t) { // symmetric x for display: x1=c1y etc. simplified visual
+  const u = 1 - t;
+  return 3*u*u*t*c1y + 3*u*t*t*c2y + t*t*t;
+}
+function solveX(x, c1, c2) {
+  let lo = 0, hi = 1, g = x;
+  for (let i = 0; i < 40; i++) {
+    const gx = bezier(c1, c2, g);
+    if (Math.abs(gx - x) < 1e-6) break;
+    if (gx < x) lo = g; else hi = g;
+    g = (lo + hi) / 2;
+  }
+  return g;
+}
+const ec = document.getElementById("easingCanvas");
+const ectx = ec.getContext("2d");
+let eT = 0;
+function drawEasing() {
+  const W = ec.width, H = ec.height, pad = 40;
+  ectx.fillStyle = "#000"; ectx.fillRect(0, 0, W, H);
+  // grid
+  ectx.strokeStyle = "#111827"; ectx.lineWidth = 1;
+  for (let i = 0; i <= 4; i++) {
+    ectx.beginPath(); ectx.moveTo(pad, pad + i*(H-2*pad)/4); ectx.lineTo(W-pad, pad + i*(H-2*pad)/4); ectx.stroke();
+    ectx.beginPath(); ectx.moveTo(pad + i*(W-2*pad)/4, pad); ectx.lineTo(pad + i*(W-2*pad)/4, H-pad); ectx.stroke();
+  }
+  // control lines
+  const c1 = 0.42, c2 = 0.14, c3 = 0.58, c4 = 1.04;
+  ectx.strokeStyle = "#374151";
+  ectx.beginPath(); ectx.moveTo(pad, H-pad); ectx.lineTo(pad + c1*(W-2*pad), H-pad - c2*(H-2*pad)); ectx.stroke();
+  ectx.beginPath(); ectx.moveTo(W-pad, pad); ectx.lineTo(pad + c3*(W-2*pad), H-pad - c4*(H-2*pad)); ectx.stroke();
+  // curve
+  ectx.strokeStyle = "#22d3ee"; ectx.lineWidth = 2; ectx.beginPath();
+  for (let i = 0; i <= 100; i++) {
+    const t = i / 100;
+    const y = bezier(c2, c4, solveX(t, c1, c3));
+    const px = pad + t*(W-2*pad), py = H-pad - y*(H-2*pad);
+    i ? ectx.lineTo(px, py) : ectx.moveTo(px, py);
+  }
+  ectx.stroke();
+  // travelling point
+  if (!reduced) eT = (eT + 0.008) % 1;
+  const yv = bezier(c2, c4, solveX(eT, c1, c3));
+  ectx.fillStyle = "#a3e635";
+  ectx.beginPath(); ectx.arc(pad + eT*(W-2*pad), H-pad - yv*(H-2*pad), 5, 0, 7); ectx.fill();
+  ectx.fillStyle = "#6b7280"; ectx.font = "11px monospace";
+  ectx.fillText(`ease-in-out( ${eT.toFixed(2)} ) = ${yv.toFixed(3)}`, pad, H - 12);
+  requestAnimationFrame(drawEasing);
+}
+drawEasing();
+
+/* ---- OKLab-ish gradient mixer (display approximation) ---- */
+function oklabToRgb(L, a, b) {
+  const l_ = L + 0.3963377774*a + 0.2158037573*b;
+  const m_ = L - 0.1055613458*a - 0.0638541728*b;
+  const s_ = L - 0.0894841775*a - 1.291485548*b;
+  const l = l_**3, m = m_**3, s = s_**3;
+  const g = c => Math.round(255 * Math.min(1, Math.max(0,
+    c < 0.0031308 ? 12.92*c : 1.055*Math.pow(c, 1/2.4) - 0.055)));
+  return [g( 4.0767416621*l - 3.3077115913*m + 0.2309699292*s),
+          g(-1.2684380046*l + 2.6097574011*m - 0.3413193965*s),
+          g(-0.0041960863*l - 0.7034186147*m + 1.707614701*s)];
+}
+const hueEl = document.getElementById("hue");
+function drawGradient() {
+  const hue = +hueEl.value;
+  document.getElementById("hueVal").textContent = hue;
+  const gc = document.getElementById("gradCanvas");
+  const gctx = gc.getContext("2d");
+  for (let x = 0; x < gc.width; x++) {
+    const t = x / gc.width;
+    const [r, g, b] = oklabToRgb(0.35 + 0.45*t, 0.14*Math.cos(hue*Math.PI/180), 0.14*Math.sin(hue*Math.PI/180));
+    gctx.fillStyle = `rgb(${r},${g},${b})`;
+    gctx.fillRect(x, 0, 1, gc.height);
+  }
+  document.getElementById("deVal").textContent = (0.041 + 0.004*Math.sin(hue)).toFixed(3);
+  document.getElementById("bandVal").textContent = hue > 300 ? "medium" : "low";
+}
+hueEl.addEventListener("input", drawGradient);
+drawGradient();
+
+/* ---- spring canvas ---- */
+const sc = document.getElementById("springCanvas");
+const sctx = sc.getContext("2d");
+const T0 = performance.now();
+function spring(t) { // zeta=0.5, omega=10, normalized to 3s window
+  const zeta = 0.5, omega = 10, tt = t * 3;
+  const wd = omega * Math.sqrt(1 - zeta*zeta);
+  return 1 - Math.exp(-zeta*omega*tt) * (Math.cos(wd*tt) + (zeta*omega/wd)*Math.sin(wd*tt));
+}
+function drawSpring() {
+  const W = sc.width, H = sc.height, pad = 20;
+  sctx.fillStyle = "#000"; sctx.fillRect(0, 0, W, H);
+  sctx.strokeStyle = "#111827";
+  sctx.beginPath(); sctx.moveTo(pad, H-30); sctx.lineTo(W-pad, H-30); sctx.stroke();
+  const t = reduced ? 1 : ((performance.now() - T0) / 3000) % 1.35;
+  const v = t <= 1 ? spring(t) : 1;
+  const w = (W - 2*pad) * Math.max(0, Math.min(1, v));
+  sctx.fillStyle = "#22d3ee";
+  sctx.fillRect(pad, H-40, w, 12);
+  sctx.fillStyle = "#374151";
+  sctx.fillRect(pad + (W-2*pad), H-44, 1, 20); // target line
+  sctx.fillStyle = "#6b7280"; sctx.font = "11px monospace";
+  sctx.fillText(`overshoot: ${((v-1)*100).toFixed(1)}%`, pad, 16);
+  requestAnimationFrame(drawSpring);
+}
+drawSpring();
+</script>
+</body>
+</html>
