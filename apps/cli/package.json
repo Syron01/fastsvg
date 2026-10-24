@@ -1,0 +1,16 @@
+{
+  "name": "@fastsvg/cli",
+  "version": "0.1.0",
+  "type": "module",
+  "bin": {
+    "fastsvg": "./dist/main.js"
+  },
+  "scripts": {
+    "build": "tsc -b"
+  },
+  "dependencies": {
+    "@fastsvg/scene-ir": "*",
+    "@fastsvg/geometry": "*",
+    "@fastsvg/export-svg": "*"
+  }
+}

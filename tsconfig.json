@@ -1,0 +1,8 @@
+{
+  "files": [],
+  "references": [
+    { "path": "packages/scene-ir" },
+    { "path": "packages/geometry" },
+    { "path": "packages/export-svg" }
+  ]
+}

@@ -1,0 +1,19 @@
+{
+  "name": "@fastsvg/mcp-server",
+  "version": "0.1.0",
+  "type": "module",
+  "bin": {
+    "fastsvg-mcp": "./dist/main.js"
+  },
+  "scripts": {
+    "build": "tsc -b",
+    "start": "tsx src/main.ts"
+  },
+  "dependencies": {
+    "@fastsvg/scene-ir": "*",
+    "@fastsvg/geometry": "*",
+    "@fastsvg/export-svg": "*",
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "zod": "^3.23.8"
+  }
+}
