@@ -168,7 +168,10 @@ export interface Bounds {
   maxY: number;
 }
 
-// Eğrilerde gerçek bounds yerine kontrol noktası bounds'u (hızlı üst sınıralı tahmin, v0.1).
+// Bézier segmentlerinde gerçek ekstremumlar kullanılır (kübik/kuadratik türev kökleri).
+// S ve T yansıtma komutları bağımsız ele alınır (önceki kontrol noktası bilgisi ayrıştırıcıda tutulmaz).
+import { cubicSegmentBounds, quadraticSegmentBounds } from "./bezier.js";
+
 export function pathBounds(segments: PathSegment[]): Bounds | null {
   let minX = Infinity;
   let minY = Infinity;
@@ -187,9 +190,24 @@ export function pathBounds(segments: PathSegment[]): Bounds | null {
     switch (s.cmd) {
       case "H": include(s.x, cy); cx = s.x; break;
       case "V": include(cx, s.y); cy = s.y; break;
-      case "C": include(s.x1, s.y1); include(s.x2, s.y2); include(s.x, s.y); cx = s.x; cy = s.y; break;
-      case "S": include(s.x2, s.y2); include(s.x, s.y); cx = s.x; cy = s.y; break;
-      case "Q": include(s.x1, s.y1); include(s.x, s.y); cx = s.x; cy = s.y; break;
+      case "C": {
+        const b = cubicSegmentBounds({ x: cx, y: cy }, { x: s.x1, y: s.y1 }, { x: s.x2, y: s.y2 }, { x: s.x, y: s.y });
+        include(b.minX, b.minY); include(b.maxX, b.maxY);
+        cx = s.x; cy = s.y;
+        break;
+      }
+      case "S": {
+        const b = cubicSegmentBounds({ x: cx, y: cy }, { x: cx, y: cy }, { x: s.x2, y: s.y2 }, { x: s.x, y: s.y });
+        include(b.minX, b.minY); include(b.maxX, b.maxY);
+        cx = s.x; cy = s.y;
+        break;
+      }
+      case "Q": {
+        const b = quadraticSegmentBounds({ x: cx, y: cy }, { x: s.x1, y: s.y1 }, { x: s.x, y: s.y });
+        include(b.minX, b.minY); include(b.maxX, b.maxY);
+        cx = s.x; cy = s.y;
+        break;
+      }
       case "A": include(s.x, s.y); cx = s.x; cy = s.y; break;
       case "M": case "L": case "T": include(s.x, s.y); cx = s.x; cy = s.y; break;
       case "Z": break;

@@ -24,12 +24,13 @@ test("round-trip parse→serialize kararlıdır", () => {
   assert.equal(serializePath(parsed.segments), d);
 });
 
-test("bounds eğri kontrol noktalarını kapsar", () => {
+test("bounds eğrilerde gerçek ekstremumu kullanır", () => {
   const parsed = parsePath("M0 0 C10 -20 20 -20 30 0");
   const bounds = pathBounds(parsed.segments)!;
   assert.equal(bounds.minX, 0);
   assert.equal(bounds.maxX, 30);
-  assert.equal(bounds.minY, -20);
+  // Simetrik kübikte gerçek minimum t=0.5'te: y = -15 (kontrol noktası -20 değil).
+  assert.ok(Math.abs(bounds.minY - (-15)) < 1e-9, `minY: ${bounds.minY}`);
 });
 
 test("geçersiz komut hata üretir", () => {

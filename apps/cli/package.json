@@ -11,6 +11,9 @@
   "dependencies": {
     "@fastsvg/scene-ir": "*",
     "@fastsvg/geometry": "*",
-    "@fastsvg/export-svg": "*"
+    "@fastsvg/export-svg": "*",
+    "@fastsvg/frame-pipeline": "*",
+    "@fastsvg/apng-exporter": "*",
+    "@fastsvg/vision": "*"
   }
 }

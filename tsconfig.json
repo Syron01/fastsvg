@@ -3,6 +3,13 @@
   "references": [
     { "path": "packages/scene-ir" },
     { "path": "packages/geometry" },
+    { "path": "packages/color-engine" },
+    { "path": "packages/gradient-engine" },
+    { "path": "packages/motion-engine" },
+    { "path": "packages/raster" },
+    { "path": "packages/apng-exporter" },
+    { "path": "packages/vision" },
+    { "path": "packages/frame-pipeline" },
     { "path": "packages/export-svg" }
   ]
 }

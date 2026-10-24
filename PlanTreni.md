@@ -1,30 +1,34 @@
 PlanTreni
-Değer: AI modellerine profesyonel SVG/animasyon üretim araçları veren motor — FastSVG v0.1 tohumu.
+Değer: AI modellerine profesyonel SVG/animasyon üretim araçları veren motor — FastSVG v0.2.
 
-Kaynak: Downloads/FastSVG_Teknik_Sartname.md (bölüm 4, 5, 6.1, 11.3, 16, 18)
-Şartnameden bu dilime alınanlar: Scene IR ana veri modeli, path builder, svg-optimized export, ilk MCP tool seti küçültülmüş sürüm.
+Kaynak: docs/product-requirements.md (şartname v1.0) + genişletme şartnamesi (P0-P3 dilimi).
 
 Bağlantılar:
-package.json → packages/*, apps/*
-packages/scene-ir → tipler + patch (kaynak doğrusu)
-packages/geometry → path parse/serialize/bounds
-packages/export-svg → scene-ir → SVG string
-apps/mcp-server → scene-ir, export-svg, geometry
-apps/cli → export-svg, geometry
+scene-ir → tüm paketler (ana veri modeli)
+geometry → raster, motion-engine, mcp-server, cli
+color-engine → gradient-engine, vision, raster
+gradient-engine → export-svg (defs), mcp-server
+motion-engine → frame-pipeline
+raster → frame-pipeline
+apng-exporter → frame-pipeline, mcp-server, cli
+frame-pipeline → mcp-server, cli, examples/animation
 
-Kod hijyeni: kebab-case dosya, camelCase TS, strict TS, hata yönetimi Result yerine düz exception + validation fonksiyonları (v0.1), test node:test + tsx.
+[x] P0 denetim (mock/TODO yok, 16 test yeşil)
+[x] P1 geometry: Bézier eval, gerçek ekstremum bounds, arc length, pointAtLength, reverse, transform
+[x] P1 color-engine: sRGB/linear/OKLab/OKLCH, WCAG kontrast, ton skalası
+[x] P1 gradient-engine: linear/radial, OKLab stoplar, banding analizi, SVG defs
+[x] P2 motion-engine: timeline, keyframe, cubic-bezier/steps/spring, loop dikiş
+[x] P2 raster: framebuffer, AA dolgu/stroke, sahne render
+[x] P2 apng-exporter: gerçek PNG/APNG encode+decode, CRC, round-trip testleri
+[x] P3 vision: piksel diff, bbox, silüet IoU
+[x] frame-pipeline: sahne+timeline → APNG (uçtan uca testli)
+[x] MCP: 10 araç, gerçek stdio duman testi (scripts/mcp-smoke.mjs)
+[x] CLI: validate/export/render/compare
+[x] CI (3 OS), LICENSE, AGENTS.md, CHANGELOG, README, örnek
+[x] 77 test yeşil + build temiz + örnek çalışıyor
 
-[x] PlanTreni
-[x] repo iskeleti (npm workspaces, tsconfig, gitignore)
-[x] packages/scene-ir
-[x] packages/geometry
-[x] packages/export-svg
-[x] apps/mcp-server (stdio, 6 tool)
-[x] apps/cli (export, validate)
-[x] testler + yeşil
-[x] git init + GitHub repo (theayzek01/fastsvg) + push
-
-[ ] v0.2: gradient/mask node'ları, boolean, render preview (resvg adapter)
-[ ] v0.3: Motion Engine timeline, APNG exporter
-! Windows'ta pnpm yok; npm workspaces kullanılıyor
-? şartnamedeki Rust çekirdeği (crates/) v0.2 kararına bırakıldı
+[ ] v0.3: boolean, gradient raster fill, delta APNG, frame diff, job/cancellation
+[ ] v0.4: Rust çekirdeği, Web Adapter
+! pnpm yok → npm workspaces
+! APNG dispose/blend yalnızca full-frame; delta frame v0.3
+? resvg/browser render adapter'ları v0.3+ karar

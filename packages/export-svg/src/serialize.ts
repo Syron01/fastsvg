@@ -1,4 +1,5 @@
-import type { SceneDocument, SceneNode, ShapeStyle } from "@fastsvg/scene-ir";
+import type { SceneDocument, SceneNode } from "@fastsvg/scene-ir";
+import { serializeGradient, type Gradient } from "@fastsvg/gradient-engine";
 
 // svg-editable profili: semantik node'lar korunur (şartname 11.3).
 export interface ExportResult {
@@ -7,7 +8,11 @@ export interface ExportResult {
   warnings: string[];
 }
 
-export function exportSvgEditable(doc: SceneDocument): ExportResult {
+export interface ExportOptions {
+  gradients?: Gradient[];
+}
+
+export function exportSvgEditable(doc: SceneDocument, options: ExportOptions = {}): ExportResult {
   const warnings: string[] = [];
   const children = new Map<string | null, SceneNode[]>();
   for (const node of doc.nodes) {
@@ -19,6 +24,11 @@ export function exportSvgEditable(doc: SceneDocument): ExportResult {
     warnings.push("No root nodes (parentId=null) found");
   }
 
+  const defs =
+    options.gradients && options.gradients.length > 0
+      ? `<defs>${options.gradients.map(serializeGradient).join("")}</defs>\n`
+      : "";
+
   const body = renderChildren(children, null, warnings, 1);
   const bg = doc.viewport.background
     ? `\n  <rect width="${doc.viewport.width}" height="${doc.viewport.height}" fill="${escapeAttr(doc.viewport.background)}"/>`
@@ -26,7 +36,7 @@ export function exportSvgEditable(doc: SceneDocument): ExportResult {
   const svg =
     `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${doc.viewport.width} ${doc.viewport.height}"` +
     ` width="${doc.viewport.width}" height="${doc.viewport.height}" data-fastsvg-document="${escapeAttr(doc.documentId)}">` +
-    `<title>${escapeText(doc.name)}</title>${bg}\n${body}</svg>\n`;
+    `<title>${escapeText(doc.name)}</title>${bg}\n${defs}${body}</svg>\n`;
 
   return { svg, nodeCount: doc.nodes.length, warnings };
 }

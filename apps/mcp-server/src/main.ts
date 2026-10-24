@@ -9,8 +9,19 @@ import { createScene, applyPatch, SCHEMA_VERSION } from "@fastsvg/scene-ir";
 import type { PatchOp, SceneDocument, SceneNode, Viewport } from "@fastsvg/scene-ir";
 import { parsePath, serializePath, pathBounds } from "@fastsvg/geometry";
 import { exportSvgEditable } from "@fastsvg/export-svg";
+import {
+  createLinearGradient, createRadialGradient, generateStops, analyzeBanding,
+  serializeGradient, type Gradient,
+} from "@fastsvg/gradient-engine";
+import type { Timeline } from "@fastsvg/motion-engine";
+import { renderTimelineApng, renderScenePng, PipelineError } from "@fastsvg/frame-pipeline";
+import { writeFileSync } from "node:fs";
+import { diffImages } from "@fastsvg/vision";
+import { decodePng, PngError } from "@fastsvg/apng-exporter";
+import { readFileSync } from "node:fs";
 
 const store = new Map<string, SceneDocument>();
+const gradients = new Map<string, Gradient>();
 
 const server = new McpServer(
   { name: "fastsvg", version: "0.1.0" },
@@ -105,18 +116,6 @@ server.tool(
 );
 
 server.tool(
-  "fastsvg_export_asset",
-  "Sahneyi svg-editable profiliyle SVG stringine dışa aktarır.",
-  { documentId: z.string() },
-  ({ documentId }) => {
-    const doc = store.get(documentId);
-    if (!doc) return fail("NODE_NOT_FOUND", `Scene not found: ${documentId}`);
-    const result = exportSvgEditable(doc);
-    return ok("SVG üretildi", result);
-  },
-);
-
-server.tool(
   "fastsvg_validate_svg",
   "SVG path datasını doğrular: komut sözdizimi, segment sayısı, bounds.",
   { d: z.string() },
@@ -124,6 +123,152 @@ server.tool(
     const parsed = parsePath(d);
     const valid = parsed.errors.length === 0 && parsed.segments.length > 0;
     return ok(valid ? "Path geçerli" : "Path geçersiz", { valid, errors: parsed.errors, segmentCount: parsed.segments.length });
+  },
+);
+
+const StopSchema = z.object({ offset: z.number(), color: z.string(), opacity: z.number().optional() });
+
+server.tool(
+  "fastsvg_create_gradient",
+  "Linear veya radial gradient oluşturur; OKLab algısal stop dağıtımı ve banding analizi döner.",
+  {
+    id: z.string(),
+    type: z.enum(["linear", "radial"]),
+    from: z.string().describe("Başlangıç rengi, hex"),
+    to: z.string().describe("Bitiş rengi, hex"),
+    steps: z.number().int().min(2).max(64).optional().describe("Stop sayısı (varsayılan 6)"),
+    // linear için:
+    x1: z.number().optional(), y1: z.number().optional(), x2: z.number().optional(), y2: z.number().optional(),
+    // radial için:
+    cx: z.number().optional(), cy: z.number().optional(), r: z.number().optional(),
+  },
+  (input) => {
+    const stops = generateStops(input.from, input.to, input.steps ?? 6);
+    if (!stops) return fail("INVALID_OP", "Geçersiz renk girdisi");
+    let result;
+    if (input.type === "linear") {
+      result = createLinearGradient({ id: input.id, x1: input.x1 ?? 0, y1: input.y1 ?? 0, x2: input.x2 ?? 1, y2: input.y2 ?? 0, units: "objectBoundingBox", stops });
+    } else {
+      if (!input.r || input.r <= 0) return fail("INVALID_OP", "Radial gradient için pozitif r gerekli");
+      result = createRadialGradient({ id: input.id, cx: input.cx ?? 0.5, cy: input.cy ?? 0.5, r: input.r, units: "objectBoundingBox", stops });
+    }
+    if (result.warnings.length > 0) return fail("INVALID_OP", result.warnings.join("; "));
+    gradients.set(input.id, result.gradient);
+    const banding = analyzeBanding(result.gradient);
+    return ok(`Gradient oluşturuldu: ${input.id}`, {
+      gradient: result.gradient,
+      svgDef: serializeGradient(result.gradient),
+      banding,
+    });
+  },
+);
+
+server.tool(
+  "fastsvg_export_asset",
+  "Sahneyi svg-editable profiliyle SVG stringine dışa aktarır; kayıtlı gradient'ler defs'e eklenir.",
+  { documentId: z.string() },
+  ({ documentId }) => {
+    const doc = store.get(documentId);
+    if (!doc) return fail("NODE_NOT_FOUND", `Scene not found: ${documentId}`);
+    const result = exportSvgEditable(doc, { gradients: [...gradients.values()] });
+    return ok("SVG üretildi", result);
+  },
+);
+
+server.tool(
+  "fastsvg_render_png",
+  "Sahneyi raster olarak PNG'ye render eder ve verilen yola yazar.",
+  { documentId: z.string(), outPath: z.string().describe("Çıktı .png dosya yolu") },
+  ({ documentId, outPath }) => {
+    const doc = store.get(documentId);
+    if (!doc) return fail("NODE_NOT_FOUND", `Scene not found: ${documentId}`);
+    try {
+      const result = renderScenePng(doc);
+      writeFileSync(outPath, result.buffer);
+      return ok(`PNG yazıldı: ${outPath}`, { renderedNodes: result.renderedNodes, warnings: result.warnings });
+    } catch (error) {
+      return fail("EXPORT_ERROR", error instanceof Error ? error.message : String(error));
+    }
+  },
+);
+
+const TimelineSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  durationMs: z.number().positive().max(600000),
+  frameRate: z.number().min(1).max(240),
+  tracks: z.array(z.object({
+    id: z.string(),
+    targetNodeId: z.string(),
+    property: z.enum(["position", "scale", "rotationDeg", "opacity", "translateX", "translateY"]),
+    keyframes: z.array(z.object({
+      id: z.string(),
+      timeMs: z.number().min(0),
+      value: z.union([z.number(), z.object({ x: z.number(), y: z.number() }), z.string()]),
+      hold: z.boolean().optional(),
+      easing: z.union([
+        z.object({ type: z.literal("linear") }),
+        z.object({ type: z.literal("cubic-bezier"), x1: z.number(), y1: z.number(), x2: z.number(), y2: z.number() }),
+        z.object({ type: z.literal("steps"), count: z.number(), position: z.enum(["start", "end"]).optional() }),
+        z.object({ type: z.literal("spring"), stiffness: z.number(), damping: z.number(), mass: z.number().optional(), initialVelocity: z.number().optional() }),
+      ]).optional(),
+    })),
+    loop: z.object({ mode: z.enum(["none", "repeat", "pingPong"]), count: z.number() }).optional(),
+  })),
+}) as unknown as z.ZodType<Timeline>;
+
+server.tool(
+  "fastsvg_export_apng",
+  "Sahne + timeline'dan kare kare APNG üretir ve dosyaya yazar. Animasyonlu PNG: alpha korunur, frame süreleri timeline fps'inden gelir.",
+  { documentId: z.string(), timeline: TimelineSchema, outPath: z.string(), loopCount: z.number().int().min(0).optional() },
+  ({ documentId, timeline, outPath, loopCount }) => {
+    const doc = store.get(documentId);
+    if (!doc) return fail("NODE_NOT_FOUND", `Scene not found: ${documentId}`);
+    try {
+      const result = renderTimelineApng(doc, timeline, loopCount ?? 0);
+      writeFileSync(outPath, result.buffer);
+      return ok(`APNG yazıldı: ${outPath}`, {
+        frameCount: result.frameCount,
+        width: result.width,
+        height: result.height,
+        encodeMs: Math.round(result.encodeMs),
+        warnings: result.warnings,
+      });
+    } catch (error) {
+      if (error instanceof PipelineError) return fail("INVALID_OP", error.message);
+      return fail("EXPORT_ERROR", error instanceof Error ? error.message : String(error));
+    }
+  },
+);
+
+server.tool(
+  "fastsvg_compare_images",
+  "İki PNG'yi piksel bazında karşılaştırır: değişen piksel oranı, ortalama hata, değişim bölgesi.",
+  { imageAPath: z.string(), imageBPath: z.string(), channelTolerance: z.number().min(0).max(255).optional() },
+  ({ imageAPath, imageBPath, channelTolerance }) => {
+    try {
+      const a = decodePng(readFileSync(imageAPath));
+      const b = decodePng(readFileSync(imageBPath));
+      if (a.width !== b.width || a.height !== b.height) {
+        return fail("INVALID_OP", `Boyutlar farklı: ${a.width}×${a.height} vs ${b.width}×${b.height}`);
+      }
+      if (a.frameCount !== b.frameCount) {
+        return fail("INVALID_OP", `Frame sayısı farklı: ${a.frameCount} vs ${b.frameCount}`);
+      }
+      // Animasyonlu dosyalarda ilk kare karşılaştırılır; frame bazlı diff ayrı araçtır (v0.3).
+      const frameBytes = a.width * a.height * 4;
+      const report = diffImages(
+        a.rgba.subarray(0, frameBytes),
+        b.rgba.subarray(0, frameBytes),
+        a.width,
+        a.height,
+        { channelTolerance: channelTolerance ?? 2 },
+      );
+      return ok("Karşılaştırma tamamlandı", { ...report, frameCountCompared: 1, totalFrames: a.frameCount });
+    } catch (error) {
+      if (error instanceof PngError) return fail("INVALID_INPUT", error.message);
+      return fail("IO_ERROR", error instanceof Error ? error.message : String(error));
+    }
   },
 );
 
