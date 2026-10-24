@@ -1,19 +1,15 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="300" viewBox="0 0 1200 300" role="img" aria-label="FastSVG — deterministic vector engine for AI">
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="280" viewBox="0 0 1200 280" role="img" aria-label="FastSVG">
   <defs>
     <linearGradient id="sweep" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0" stop-color="#3b82f6">
-        <animate attributeName="stop-color" values="#3b82f6;#22d3ee;#a3e635;#fbbf24;#f472b6;#3b82f6" dur="8s" repeatCount="indefinite"/>
+      <stop offset="0" stop-color="#22d3ee">
+        <animate attributeName="stop-color" values="#22d3ee;#a3e635;#fbbf24;#f472b6;#818cf8;#22d3ee" dur="10s" repeatCount="indefinite"/>
       </stop>
       <stop offset="1" stop-color="#a3e635">
-        <animate attributeName="stop-color" values="#a3e635;#3b82f6;#22d3ee;#a3e635" dur="8s" repeatCount="indefinite"/>
+        <animate attributeName="stop-color" values="#a3e635;#fbbf24;#f472b6;#818cf8;#22d3ee;#a3e635" dur="10s" repeatCount="indefinite"/>
       </stop>
     </linearGradient>
-    <linearGradient id="fade" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0" stop-color="#e5e7eb"/>
-      <stop offset="1" stop-color="#6b7280"/>
-    </linearGradient>
     <path id="morph" d="M0 -34 C19 -34 34 -19 34 0 C34 19 19 34 0 34 C-19 34 -34 19 -34 0 C-34 -19 -19 -34 0 -34 Z">
-      <animate attributeName="d" dur="6s" repeatCount="indefinite" calcMode="spline"
+      <animate attributeName="d" dur="7s" repeatCount="indefinite" calcMode="spline"
         keyTimes="0;0.33;0.66;1" keySplines="0.42 0 0.58 1;0.42 0 0.58 1;0.42 0 0.58 1"
         values="M0 -34 C19 -34 34 -19 34 0 C34 19 19 34 0 34 C-19 34 -34 19 -34 0 C-34 -19 -19 -34 0 -34 Z;
                 M-30 -30 L30 -30 L30 30 L-30 30 Z;
@@ -22,52 +18,27 @@
     </path>
   </defs>
 
-  <!-- OLED black -->
-  <rect width="1200" height="300" fill="#000000"/>
+  <rect width="1200" height="280" fill="#000000"/>
 
-  <!-- faint engineering grid -->
-  <g stroke="#111827" stroke-width="1">
-    <path d="M0 75 H1200 M0 150 H1200 M0 225 H1200 M300 0 V300 M600 0 V300 M900 0 V300"/>
-  </g>
+  <!-- wordmark: tek text, tspans yan yana → çakışma yok -->
+  <text x="120" y="158" font-family="ui-monospace, 'Cascadia Code', Menlo, monospace"
+        font-size="80" font-weight="700" letter-spacing="-3">
+    <tspan fill="#9ca3af">Fast</tspan><tspan fill="url(#sweep)">SVG</tspan>
+  </text>
 
-  <!-- baseline rule under wordmark -->
-  <rect x="120" y="206" width="560" height="2" fill="url(#sweep)"/>
+  <!-- accent line -->
+  <rect x="122" y="186" width="470" height="2" fill="url(#sweep)"/>
 
-  <!-- wordmark -->
-  <text x="120" y="170" font-family="ui-monospace, 'Cascadia Code', 'SF Mono', Menlo, monospace"
-        font-size="84" font-weight="700" letter-spacing="-3" fill="url(#fade)">Fast</text>
-  <text x="266" y="170" font-family="ui-monospace, 'Cascadia Code', 'SF Mono', Menlo, monospace"
-        font-size="84" font-weight="700" letter-spacing="-3" fill="url(#sweep)">SVG</text>
+  <text x="122" y="226" font-family="ui-monospace, Menlo, monospace" font-size="15"
+        letter-spacing="3" fill="#4b5563">GEOMETRY · COLOR · MOTION · APNG</text>
 
-  <!-- tagline -->
-  <text x="122" y="242" font-family="ui-monospace, Menlo, monospace" font-size="17"
-        letter-spacing="1.5" fill="#6b7280">DETERMINISTIC  GEOMETRY  ·  COLOR  SCIENCE  ·  MOTION  ·  APNG</text>
-
-  <!-- morphing engine glyph -->
-  <g transform="translate(980,150)">
-    <use href="#morph" fill="none" stroke="url(#sweep)" stroke-width="3">
-      <animateTransform attributeName="transform" type="rotate" from="0" to="360" dur="14s" repeatCount="indefinite" additive="sum"/>
-    </use>
-    <use href="#morph" fill="url(#sweep)" opacity="0.12">
-      <animateTransform attributeName="transform" type="rotate" from="360" to="0" dur="20s" repeatCount="indefinite" additive="sum"/>
-    </use>
-  </g>
-
-  <!-- orbiting measurement dots (arc-length sampling) -->
-  <g fill="#22d3ee">
-    <circle r="3">
-      <animateMotion dur="6s" repeatCount="indefinite" path="M980 150 q 60 -80 120 0 q 60 80 120 0"/>
-    </circle>
-    <circle r="2" opacity="0.7">
-      <animateMotion dur="6s" begin="1.5s" repeatCount="indefinite" path="M980 150 q 60 -80 120 0 q 60 80 120 0"/>
-    </circle>
-    <circle r="2" opacity="0.45">
-      <animateMotion dur="6s" begin="3s" repeatCount="indefinite" path="M980 150 q 60 -80 120 0 q 60 80 120 0"/>
-    </circle>
+  <!-- morph glyph -->
+  <g transform="translate(1010,140)">
+    <use href="#morph" fill="none" stroke="url(#sweep)" stroke-width="3"/>
   </g>
 
   <!-- corner ticks -->
-  <g stroke="#374151" stroke-width="2">
-    <path d="M20 20 h16 M20 20 v16 M1180 20 h-16 M1180 20 v16 M20 280 h16 M20 280 v-16 M1180 280 h-16 M1180 280 v-16"/>
+  <g stroke="#1f2937" stroke-width="2">
+    <path d="M24 24 h14 M24 24 v14 M1176 24 h-14 M1176 24 v14 M24 256 h14 M24 256 v-14 M1176 256 h-14 M1176 256 v-14"/>
   </g>
 </svg>

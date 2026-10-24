@@ -1,6 +1,5 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="380" height="220" viewBox="0 0 380 220" role="img" aria-label="Path morphing and stroke reveal demo">
-  <rect width="380" height="220" fill="#000000"/>
-  <text x="20" y="32" font-family="ui-monospace, Menlo, monospace" font-size="12" letter-spacing="2" fill="#6b7280">001 · PATH MORPH + TRIM</text>
+<svg xmlns="http://www.w3.org/2000/svg" width="380" height="200" viewBox="0 0 380 200" role="img" aria-label="Path morphing and stroke reveal">
+  <rect width="380" height="200" fill="#000000"/>
 
   <defs>
     <linearGradient id="ink" x1="0" y1="0" x2="1" y2="1">
@@ -10,29 +9,21 @@
   </defs>
 
   <!-- morphing shape -->
-  <g transform="translate(110,130)">
+  <g transform="translate(110,105)">
     <path fill="none" stroke="url(#ink)" stroke-width="3" stroke-linejoin="round"
-          d="M0 -45 C25 -45 45 -25 45 0 C45 25 25 45 0 45 C-25 45 -45 25 -45 0 C-45 -25 -25 -45 0 -45 Z">
+          d="M0 -42 C23 -42 42 -23 42 0 C42 23 23 42 0 42 C-23 42 -42 23 -42 0 C-42 -23 -23 -42 0 -42 Z">
       <animate attributeName="d" dur="5s" repeatCount="indefinite" calcMode="spline"
         keyTimes="0;0.5;1" keySplines="0.42 0 0.58 1;0.42 0 0.58 1"
-        values="M0 -45 C25 -45 45 -25 45 0 C45 25 25 45 0 45 C-25 45 -45 25 -45 0 C-45 -25 -25 -45 0 -45 Z;
-                M-40 -40 L40 -40 L40 40 L-40 40 Z;
-                M0 -45 C25 -45 45 -25 45 0 C45 25 25 45 0 45 C-25 45 -45 25 -45 0 C-45 -25 -25 -45 0 -45 Z"/>
+        values="M0 -42 C23 -42 42 -23 42 0 C42 23 23 42 0 42 C-23 42 -42 23 -42 0 C-42 -23 -23 -42 0 -42 Z;
+                M-38 -38 L38 -38 L38 38 L-38 38 Z;
+                M0 -42 C23 -42 42 -23 42 0 C42 23 23 42 0 42 C-23 42 -42 23 -42 0 C-42 -23 -23 -42 0 -42 Z"/>
     </path>
-    <circle r="3" fill="#f472b6">
-      <animateMotion dur="5s" repeatCount="indefinite" path="M0 -45 C25 -45 45 -25 45 0 C45 25 25 45 0 45 C-25 45 -45 25 -45 0 C-45 -25 -25 -45 0 -45 Z"/>
-    </circle>
   </g>
 
   <!-- stroke reveal -->
-  <g transform="translate(250,130)" fill="none" stroke="url(#ink)" stroke-width="3" stroke-linecap="round">
-    <path d="M-50 0 q 25 -40 50 0 q 25 40 50 0" stroke-dasharray="160" stroke-dashoffset="160">
-      <animate attributeName="stroke-dashoffset" values="160;0;0;-160;-160;160" keyTimes="0;0.2;0.4;0.6;0.8;1" dur="4s" repeatCount="indefinite"/>
+  <g transform="translate(255,105)" fill="none" stroke="url(#ink)" stroke-width="3" stroke-linecap="round">
+    <path d="M-45 0 q 22 -36 45 0 q 22 36 45 0" stroke-dasharray="150" stroke-dashoffset="150">
+      <animate attributeName="stroke-dashoffset" values="150;0;0;-150;-150;150" keyTimes="0;0.2;0.45;0.65;0.85;1" dur="4s" repeatCount="indefinite"/>
     </path>
-    <circle r="4" fill="#fbbf24" stroke="none">
-      <animateMotion dur="4s" keyTimes="0;0.2;0.4" values="M-50 0;M-50 0;M50 0" repeatCount="indefinite"/>
-    </circle>
   </g>
-
-  <g stroke="#1f2937" stroke-width="1"><line x1="190" y1="40" x2="190" y2="200"/></g>
 </svg>
