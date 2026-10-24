@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.3.0 — 2026-10-24
+
+### Yeni
+- `@fastsvg/raster`: gradient fill rasterizasyonu — `url(#id)` dolguları artık rasterlenir (linear/radial, 256 adımlı LUT, userSpaceOnUse + objectBoundingBox); önceki sürümde bu node'lar atlanırdı
+- `@fastsvg/raster`: `fillPolygon` scanline span algoritmasına geçti (dikey 2× supersampling + yatay subpixel kapsama); piksel başına çokgen testi kalktı, büyük dolgular belirgin hızlandı
+- `@fastsvg/frame-pipeline`: statik alt katman önbelleği — ilk animasyonlu node'a kadar olan ön ek bir kez rasterlenip her kareye kopyalanır; `renderTimelineApng` artık `gradients` seçeneği alır, `staticLayerNodes` raporlar
+
+### Sınırlamalar
+- APNG delta frame hâlâ v0.4'te; gradient stroke henüz desteklenmiyor
+
 ## 0.2.0 — 2026-10-24
 
 ### Yeni

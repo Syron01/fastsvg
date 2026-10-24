@@ -59,7 +59,7 @@ Ten tools: `create_scene` · `apply_patch` · `build_path` · `create_gradient` 
 
 ## Limits
 
-Boolean ops, gradient raster fills and delta-frame APNG aren't implemented yet.
+Boolean ops, gradient strokes and delta-frame APNG aren't implemented yet. Gradient *fills* rasterize since v0.3 (linear/radial LUT) and static scene layers are cached per animation.
 Everything shipped is tested — [full spec](docs/product-requirements.md) · [live demo](docs/demo.html).
 
 <div align="center">

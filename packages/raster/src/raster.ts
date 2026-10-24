@@ -1,5 +1,6 @@
 // RGBA framebuffer ve temel rasterizasyon.
-// AA yöntemi: piksel başına 2×2 supersampling. Bellek: w*h*4 byte; sınırlar validate'de.
+// AA yöntemi: dikeyde 2× supersampling + yatayda subpixel span kapsaması (scanline).
+// Gradient: userSpace LUT (256 adım); örnekleme piksel merkezinde yapılır.
 
 import { parsePath, evalCubic, evalQuadratic, type PathSegment } from "@fastsvg/geometry";
 
@@ -59,13 +60,75 @@ export function blendPixel(fb: Framebuffer, x: number, y: number, rgba: [number,
 
 export interface FillStyle {
   color: [number, number, number, number];
+  gradient?: GradientPaint;
 }
 
-// Even-odd kuralıyla çokgen doldurma (2×2 supersampling ile AA).
+export type Rgba = [number, number, number, number];
+
+export const GRADIENT_LUT_SIZE = 256;
+
+/** userSpaceOnUse gradient boyası: LUT önceden hesaplanır, project piksel→t verir. */
+export type GradientPaint =
+  | { kind: "linear"; x1: number; y1: number; x2: number; y2: number; lut: Uint8ClampedArray }
+  | { kind: "radial"; cx: number; cy: number; r: number; lut: Uint8ClampedArray };
+
+export interface GradientStopRgba {
+  offset: number; // 0..1, artan
+  color: Rgba;
+}
+
+// Stoplar arası SVG varsayılanı gibi sRGB doğrusal interp; LUT ile piksel başına O(1).
+export function buildGradientLut(stops: GradientStopRgba[]): Uint8ClampedArray {
+  if (stops.length === 0) throw new FrameBufferError("Gradient LUT için en az 1 stop gerekli");
+  const lut = new Uint8ClampedArray(GRADIENT_LUT_SIZE * 4);
+  const sorted = [...stops].sort((a, b) => a.offset - b.offset);
+  for (let i = 0; i < GRADIENT_LUT_SIZE; i += 1) {
+    const t = i / (GRADIENT_LUT_SIZE - 1);
+    let lo = sorted[0]!;
+    let hi = sorted[sorted.length - 1]!;
+    for (let s = 0; s < sorted.length - 1; s += 1) {
+      const a = sorted[s]!;
+      const b = sorted[s + 1]!;
+      if (t >= a.offset && t <= b.offset) {
+        lo = a;
+        hi = b;
+        break;
+      }
+    }
+    const span = hi.offset - lo.offset;
+    const local = span <= 0 ? 0 : Math.max(0, Math.min(1, (t - lo.offset) / span));
+    const idx = i * 4;
+    for (let c = 0; c < 4; c += 1) {
+      lut[idx + c] = Math.round(lo.color[c]! + (hi.color[c]! - lo.color[c]!) * local);
+    }
+  }
+  return lut;
+}
+
+function sampleGradient(paint: GradientPaint, x: number, y: number, out: Rgba): Rgba {
+  let t: number;
+  if (paint.kind === "linear") {
+    const dx = paint.x2 - paint.x1;
+    const dy = paint.y2 - paint.y1;
+    const lenSq = dx * dx + dy * dy;
+    t = lenSq <= 1e-9 ? 0 : ((x - paint.x1) * dx + (y - paint.y1) * dy) / lenSq;
+  } else {
+    t = Math.hypot(x - paint.cx, y - paint.cy) / paint.r;
+  }
+  const idx = Math.max(0, Math.min(GRADIENT_LUT_SIZE - 1, Math.round(t * (GRADIENT_LUT_SIZE - 1)))) * 4;
+  out[0] = paint.lut[idx]!;
+  out[1] = paint.lut[idx + 1]!;
+  out[2] = paint.lut[idx + 2]!;
+  out[3] = paint.lut[idx + 3]!;
+  return out;
+}
+
+// Even-odd kuralıyla çokgen doldurma: scanline span algoritması.
+// Dikeyde 2 alt örnek satırı, yatayda subpixel kapsama; iç piksellerde örneklemesi yok.
+const SCAN_ROWS = 2;
+
 export function fillPolygon(fb: Framebuffer, points: { x: number; y: number }[], style: FillStyle): void {
   if (points.length < 3) return;
-  const SS = 2;
-  const sub = SS * SS;
   let minY = Infinity;
   let maxY = -Infinity;
   for (const p of points) {
@@ -74,17 +137,58 @@ export function fillPolygon(fb: Framebuffer, points: { x: number; y: number }[],
   }
   const yStart = Math.max(0, Math.floor(minY));
   const yEnd = Math.min(fb.height - 1, Math.ceil(maxY));
+  if (yStart > yEnd) return;
+
+  type Edge = { ax: number; ay: number; bx: number; by: number };
+  const edges: Edge[] = [];
+  for (let i = 0; i < points.length; i += 1) {
+    const a = points[i]!;
+    const b = points[(i + 1) % points.length]!;
+    if (a.y !== b.y) edges.push({ ax: a.x, ay: a.y, bx: b.x, by: b.y });
+  }
+  if (edges.length === 0) return;
+
+  const crossings: number[] = [];
+  const coverage = new Float64Array(fb.width);
+  const rgba: Rgba = [0, 0, 0, 0];
   for (let y = yStart; y <= yEnd; y += 1) {
-    for (let x = 0; x < fb.width; x += 1) {
-      let hits = 0;
-      for (let sy = 0; sy < SS; sy += 1) {
-        for (let sx = 0; sx < SS; sx += 1) {
-          const px = x + (sx + 0.5) / SS;
-          const py = y + (sy + 0.5) / SS;
-          if (pointInPolygonEvenOdd(px, py, points)) hits += 1;
+    coverage.fill(0);
+    for (let sr = 0; sr < SCAN_ROWS; sr += 1) {
+      const yScan = y + (sr + 0.5) / SCAN_ROWS;
+      if (yScan < minY || yScan >= maxY) continue;
+      crossings.length = 0;
+      for (const e of edges) {
+        const yLo = Math.min(e.ay, e.by);
+        const yHi = Math.max(e.ay, e.by);
+        if (yScan >= yLo && yScan < yHi) {
+          const t = (yScan - e.ay) / (e.by - e.ay);
+          crossings.push(e.ax + t * (e.bx - e.ax));
         }
       }
-      if (hits > 0) blendPixel(fb, x, y, style.color, hits / sub);
+      if (crossings.length < 2) continue;
+      crossings.sort((m, n) => m - n);
+      for (let c = 0; c + 1 < crossings.length; c += 2) {
+        const x0 = crossings[c]!;
+        const x1 = crossings[c + 1]!;
+        if (x1 <= 0 || x0 >= fb.width) continue;
+        const px0 = Math.max(0, Math.floor(x0));
+        const px1 = Math.min(fb.width - 1, Math.ceil(x1) - 1);
+        for (let x = px0; x <= px1; x += 1) {
+          const overlap = Math.min(1, Math.min(x1, x + 1) - Math.max(x0, x));
+          if (overlap > 0) coverage[x]! += overlap;
+        }
+      }
+    }
+    const scale = 1 / SCAN_ROWS;
+    for (let x = 0; x < fb.width; x += 1) {
+      const cov = coverage[x]! * scale;
+      if (cov <= 0) continue;
+      if (style.gradient) {
+        sampleGradient(style.gradient, x + 0.5, y + 0.5, rgba);
+        blendPixel(fb, x, y, rgba, cov);
+      } else {
+        blendPixel(fb, x, y, style.color, cov);
+      }
     }
   }
 }
@@ -103,6 +207,7 @@ export function pointInPolygonEvenOdd(px: number, py: number, points: { x: numbe
 }
 
 export function fillRect(fb: Framebuffer, x: number, y: number, w: number, h: number, style: FillStyle): void {
+  // Eksen hizalı da olsa kısmi kenar pikselleri AA gerektirir: scanline yolu her zaman kullanılır.
   fillPolygon(fb, [
     { x, y },
     { x: x + w, y },
@@ -115,6 +220,7 @@ export function fillCircle(fb: Framebuffer, cx: number, cy: number, r: number, s
   if (r <= 0) return;
   const SS = 2;
   const sub = SS * SS;
+  const rgba: Rgba = [0, 0, 0, 0];
   const yStart = Math.max(0, Math.floor(cy - r));
   const yEnd = Math.min(fb.height - 1, Math.ceil(cy + r));
   const xStart = Math.max(0, Math.floor(cx - r));
@@ -129,7 +235,10 @@ export function fillCircle(fb: Framebuffer, cx: number, cy: number, r: number, s
           if ((px - cx) ** 2 + (py - cy) ** 2 <= r * r) hits += 1;
         }
       }
-      if (hits > 0) blendPixel(fb, x, y, style.color, hits / sub);
+      if (hits > 0) {
+        const color = style.gradient ? sampleGradient(style.gradient, x + 0.5, y + 0.5, rgba) : style.color;
+        blendPixel(fb, x, y, color, hits / sub);
+      }
     }
   }
 }
