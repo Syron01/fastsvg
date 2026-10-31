@@ -1,11 +1,11 @@
 // SceneDocument → framebuffer render.
-// v0.3: url(#id) gradient fill (linear/radial, LUT), statik alt katman önbelleği.
+// v0.3+: url(#id) gradient fill + gradient stroke (linear/radial, LUT), statik alt katman önbelleği.
 
 import type { SceneDocument, SceneNode, ShapeStyle, Transform2d } from "@fastsvg/scene-ir";
 import { parseHexColor } from "@fastsvg/color-engine";
 import { parsePath } from "@fastsvg/geometry";
 import {
-  createFramebuffer, fillRect, fillCircle, fillPolygon, fillPath, strokePolyline, flattenPath,
+  createFramebuffer, fillRect, fillCircle, fillPolygon, strokePolyline, flattenPath,
   buildGradientLut, type Framebuffer, type FillStyle, type GradientPaint, type GradientStopRgba,
 } from "./raster.js";
 
@@ -16,23 +16,19 @@ export interface SceneRenderResult {
 }
 
 export interface RenderOverrides {
-  // Track örneklemesi sonucu node bazlı düzeltmeler.
   translateX?: Record<string, number>;
   translateY?: Record<string, number>;
   opacity?: Record<string, number>;
 }
 
-/** Raster tarafa yapısal (gradyan motorundan bağımsız) gradient tanımı. */
 export interface SceneGradient {
   id: string;
   kind: "linear" | "radial";
   stops: { offset: number; color: string; opacity?: number }[];
-  // linear koordinatları
   x1?: number;
   y1?: number;
   x2?: number;
   y2?: number;
-  // radial koordinatları
   cx?: number;
   cy?: number;
   r?: number;
@@ -41,9 +37,7 @@ export interface SceneGradient {
 
 export interface SceneRenderOptions {
   gradients?: SceneGradient[];
-  // Statik alt katman: frame başına kopyalanır, yeniden rasterlenmez.
   baseLayer?: Framebuffer;
-  // Bu frame'de çizilmeyecek node'lar (baseLayer'a giren statik ön ek).
   skipNodeIds?: ReadonlySet<string>;
 }
 
@@ -56,7 +50,6 @@ function applyTransform(p: { x: number; y: number }, t: Transform2d | undefined,
 
 const URL_FILL = /^url\(#([\w-]+)\)$/;
 
-// Gerçek bbox: tüm şekil tipleri için nokta listesi üzerinden.
 function shapePoints(node: SceneNode): { x: number; y: number }[] {
   const p = node.props ?? {};
   switch (node.type) {
@@ -72,7 +65,10 @@ function shapePoints(node: SceneNode): { x: number; y: number }[] {
       for (let i = 0; i + 1 < (p.points ?? []).length; i += 2) out.push({ x: p.points![i]!, y: p.points![i + 1]! });
       return out;
     }
-    case "line": return [{ x: p.x ?? 0, y: p.y ?? 0 }, { x: p.x ?? 0, y: p.y ?? 0 }];
+    case "line": {
+      const rp = p as Record<string, number>;
+      return [{ x: rp["x1"] ?? p.x ?? 0, y: rp["y1"] ?? p.y ?? 0 }, { x: rp["x2"] ?? p.x ?? 0, y: rp["y2"] ?? p.y ?? 0 }];
+    }
     case "path": {
       if (!p.d) return [];
       return flattenPath(parsePath(p.d).segments).flat();
@@ -121,7 +117,6 @@ function resolveGradientPaint(grad: SceneGradient, node: SceneNode, warnings: st
     if (grad.kind === "linear") {
       paint = { kind: "linear", x1: minX + (grad.x1 ?? 0) * w, y1: minY + (grad.y1 ?? 0) * h, x2: minX + (grad.x2 ?? 0) * w, y2: minY + (grad.y2 ?? 0) * h, lut };
     } else {
-      // SVG bbox birim çemberi bbox'a gerer; pratik yaklaşımla r büyük ekseni ölçekler.
       paint = { kind: "radial", cx: minX + (grad.cx ?? 0.5) * w, cy: minY + (grad.cy ?? 0.5) * h, r: (grad.r ?? 0.5) * Math.max(w, h), lut };
     }
   }
@@ -153,11 +148,34 @@ function toFillStyle(style: ShapeStyle | undefined, node: SceneNode, opacity: nu
   return { color: [Math.round(color.r * 255), Math.round(color.g * 255), Math.round(color.b * 255), alpha] };
 }
 
-function toStrokeStyle(style: ShapeStyle | undefined, opacity: number | undefined, warnings: string[], nodeId: string): { style: FillStyle; width: number } | null {
+function toStrokeStyle(
+  style: ShapeStyle | undefined,
+  node: SceneNode,
+  opacity: number | undefined,
+  warnings: string[],
+  gradients: SceneGradient[] | undefined,
+  lutCache: Map<string, GradientPaint>,
+): { style: FillStyle; width: number } | null {
   if (!style?.stroke) return null;
+  const urlMatch = URL_FILL.exec(style.stroke.color);
+  if (urlMatch) {
+    const gradId = urlMatch[1]!;
+    const grad = gradients?.find((g) => g.id === gradId);
+    if (!grad) {
+      warnings.push(`Node ${node.id}: stroke gradient ${gradId} tanımlı değil, stroke atlandı`);
+      return null;
+    }
+    const paint = resolveGradientPaint(grad, node, warnings, node.id, lutCache);
+    if (!paint) return null;
+    const alpha = Math.round((style.stroke.opacity ?? 1) * (opacity ?? 1) * 255);
+    return {
+      style: { color: [255, 255, 255, alpha], gradient: paint },
+      width: style.stroke.widthPx,
+    };
+  }
   const color = parseHexColor(style.stroke.color);
   if (!color) {
-    warnings.push(`Node ${nodeId}: geçersiz stroke rengi, node atlandı`);
+    warnings.push(`Node ${node.id}: geçersiz stroke rengi ${style.stroke.color}, stroke atlandı`);
     return null;
   }
   const alpha = Math.round((style.stroke.opacity ?? 1) * (opacity ?? 1) * 255);
@@ -175,7 +193,6 @@ export function renderScene(doc: SceneDocument, overrides: RenderOverrides = {},
     if (options.baseLayer.width !== doc.viewport.width || options.baseLayer.height !== doc.viewport.height) {
       throw new Error("baseLayer boyutu viewport ile uyuşmuyor");
     }
-    // Statik alt katman kopyalanır; üzerinde bu frame'in node'ları çizilir.
     fb = createFramebuffer(doc.viewport.width, doc.viewport.height);
     fb.data.set(options.baseLayer.data);
   } else {
@@ -191,29 +208,53 @@ export function renderScene(doc: SceneDocument, overrides: RenderOverrides = {},
     const dy = overrides.translateY?.[node.id] ?? 0;
     const opacity = overrides.opacity?.[node.id];
     const fill = toFillStyle(node.style, node, opacity, warnings, options.gradients, lutCache);
-    const stroke = toStrokeStyle(node.style, opacity, warnings, node.id);
+    const stroke = toStrokeStyle(node.style, node, opacity, warnings, options.gradients, lutCache);
     const p = node.props ?? {};
+    let drewSomething = false;
 
     switch (node.type) {
       case "rect": {
         if (fill) {
           fillRect(fb, (p.x ?? 0) + dx, (p.y ?? 0) + dy, p.width ?? 0, p.height ?? 0, fill);
-          renderedNodes += 1;
+          drewSomething = true;
         }
-        if (stroke) outlineRect(fb, p.x ?? 0, p.y ?? 0, p.width ?? 0, p.height ?? 0, dx, dy, stroke);
+        if (stroke) {
+          outlineRect(fb, p.x ?? 0, p.y ?? 0, p.width ?? 0, p.height ?? 0, dx, dy, stroke);
+          drewSomething = true;
+        }
         break;
       }
       case "circle": {
         if (fill) {
           fillCircle(fb, (p.cx ?? 0) + dx, (p.cy ?? 0) + dy, p.r ?? 0, fill);
-          renderedNodes += 1;
+          drewSomething = true;
+        }
+        if (stroke && (p.r ?? 0) > 0) {
+          const steps = 48;
+          const pts: { x: number; y: number }[] = [];
+          for (let i = 0; i <= steps; i++) {
+            const angle = (i / steps) * 2 * Math.PI;
+            pts.push({ x: (p.cx ?? 0) + dx + (p.r ?? 0) * Math.cos(angle), y: (p.cy ?? 0) + dy + (p.r ?? 0) * Math.sin(angle) });
+          }
+          strokePolyline(fb, pts, stroke.width, stroke.style);
+          drewSomething = true;
         }
         break;
       }
       case "ellipse": {
         if (fill) {
           fillEllipse(fb, (p.cx ?? 0) + dx, (p.cy ?? 0) + dy, p.rx ?? 0, p.ry ?? 0, fill);
-          renderedNodes += 1;
+          drewSomething = true;
+        }
+        if (stroke && (p.rx ?? 0) > 0 && (p.ry ?? 0) > 0) {
+          const steps = 48;
+          const pts: { x: number; y: number }[] = [];
+          for (let i = 0; i <= steps; i++) {
+            const angle = (i / steps) * 2 * Math.PI;
+            pts.push({ x: (p.cx ?? 0) + dx + (p.rx ?? 0) * Math.cos(angle), y: (p.cy ?? 0) + dy + (p.ry ?? 0) * Math.sin(angle) });
+          }
+          strokePolyline(fb, pts, stroke.width, stroke.style);
+          drewSomething = true;
         }
         break;
       }
@@ -225,17 +266,22 @@ export function renderScene(doc: SceneDocument, overrides: RenderOverrides = {},
         }, []).map((pt) => applyTransform(pt, node.transform, dx, dy));
         if (points.length >= 3 && fill) {
           fillPolygon(fb, points, fill);
-          renderedNodes += 1;
+          drewSomething = true;
         }
-        if (stroke && points.length >= 2) strokePolyline(fb, points, stroke.width, stroke.style);
+        if (stroke && points.length >= 2) {
+          strokePolyline(fb, points, stroke.width, stroke.style);
+          drewSomething = true;
+        }
         break;
       }
       case "line": {
         if (stroke) {
+          const rp = p as Record<string, number>;
           strokePolyline(fb, [
-            applyTransform({ x: p.x ?? 0, y: p.y ?? 0 }, node.transform, dx, dy),
-            applyTransform({ x: p.x ?? 0, y: p.y ?? 0 }, node.transform, dx, dy),
+            applyTransform({ x: rp["x1"] ?? p.x ?? 0, y: rp["y1"] ?? p.y ?? 0 }, node.transform, dx, dy),
+            applyTransform({ x: rp["x2"] ?? p.x ?? 0, y: rp["y2"] ?? p.y ?? 0 }, node.transform, dx, dy),
           ], stroke.width, stroke.style);
+          drewSomething = true;
         }
         break;
       }
@@ -246,18 +292,23 @@ export function renderScene(doc: SceneDocument, overrides: RenderOverrides = {},
           for (const sp of flattenPath(parsed.segments)) {
             fillPolygon(fb, sp.map((pt) => applyTransform(pt, node.transform, dx, dy)), fill);
           }
-          renderedNodes += 1;
+          drewSomething = true;
         }
         if (stroke) {
           const parsed = parsePath(p.d);
           for (const sp of flattenPath(parsed.segments)) {
             strokePolyline(fb, sp.map((pt) => applyTransform(pt, node.transform, dx, dy)), stroke.width, stroke.style);
           }
+          drewSomething = true;
         }
         break;
       }
       default:
         warnings.push(`Node ${node.id}: tip ${node.type} rasterlenemedi`);
+    }
+
+    if (drewSomething) {
+      renderedNodes += 1;
     }
   }
 
@@ -272,7 +323,6 @@ function outlineRect(fb: Framebuffer, x: number, y: number, w: number, h: number
     { x: x + dx, y: y + h + dy },
     { x: x + dx, y: y + dy },
   ];
-  // strokePolyline local import döngüsü olmadan kullanılır (aynı modülde).
   strokePolyline(fb, pts, stroke.width, stroke.style);
 }
 

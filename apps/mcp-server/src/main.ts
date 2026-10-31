@@ -1,13 +1,19 @@
 #!/usr/bin/env node
-// FastSVG MCP Server v0.1 — stdio transport.
-// İlk public tool set (şartname 16.2'nin küçültülmüş v0.1 sürümü).
+// FastSVG MCP Server v0.4+ — stdio transport.
+// Yüksek Hızlı Turbo Araç Seti: Scene IR, 3D Geometri & Işıklandırma, Slayt/Web Kompozisyonları,
+// Veri Görselleştirme (Charts), Boolean İşlemleri, Kalite Değerlendirmesi, APNG Delta.
 
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StdioServerTransport } from "@modelcontextprotocol/sdk/server/stdio.js";
 import { z } from "zod";
 import { createScene, applyPatch, SCHEMA_VERSION } from "@fastsvg/scene-ir";
 import type { PatchOp, SceneDocument, SceneNode, Viewport } from "@fastsvg/scene-ir";
-import { parsePath, serializePath, pathBounds } from "@fastsvg/geometry";
+import {
+  parsePath, serializePath, pathBounds, pathBoolean, evaluateVisualQuality,
+  create3DBox, create3DCylinder, create3DPlane, render3DFaces,
+  composeSlideSvg, composeWebHeroSvg,
+  generateDonutChartSvg, generateSmoothAreaChartSvg, generateBarChartSvg, generateGaugeMeterSvg,
+} from "@fastsvg/geometry";
 import { exportSvgEditable } from "@fastsvg/export-svg";
 import {
   createLinearGradient, createRadialGradient, generateStops, analyzeBanding,
@@ -15,16 +21,15 @@ import {
 } from "@fastsvg/gradient-engine";
 import type { Timeline } from "@fastsvg/motion-engine";
 import { renderTimelineApng, renderScenePng, PipelineError } from "@fastsvg/frame-pipeline";
-import { writeFileSync } from "node:fs";
-import { diffImages } from "@fastsvg/vision";
-import { decodePng, PngError } from "@fastsvg/apng-exporter";
-import { readFileSync } from "node:fs";
+import { writeFileSync, readFileSync } from "node:fs";
+import { diffImages, diffAnimationFrames } from "@fastsvg/vision";
+import { decodePng, PngError, encodeApng } from "@fastsvg/apng-exporter";
 
 const store = new Map<string, SceneDocument>();
 const gradients = new Map<string, Gradient>();
 
 const server = new McpServer(
-  { name: "fastsvg", version: "0.1.0" },
+  { name: "fastsvg", version: "0.4.0" },
   { capabilities: { tools: {} } },
 );
 
@@ -126,7 +131,211 @@ server.tool(
   },
 );
 
-const StopSchema = z.object({ offset: z.number(), color: z.string(), opacity: z.number().optional() });
+server.tool(
+  "fastsvg_boolean_paths",
+  "İki SVG path verisi üzerinde boolean geometrisi (union, intersection, difference, xor) uygular.",
+  {
+    subjectD: z.string().describe("Birinci (ana) SVG path stringi"),
+    clipD: z.string().describe("İkinci (kırpıcı) SVG path stringi"),
+    operation: z.enum(["union", "intersection", "difference", "xor"]).describe("Boolean operasyonu"),
+    curveSteps: z.number().int().min(4).max(64).optional().describe("Eğri örnekleme adım sayısı (varsayılan 24)"),
+  },
+  ({ subjectD, clipD, operation, curveSteps }) => {
+    const res = pathBoolean(subjectD, clipD, operation, { curveSteps });
+    if (res.errors.length > 0) return fail("INVALID_OP", res.errors.join("; "));
+    return ok(`Boolean operasyonu (${operation}) tamamlandı`, {
+      d: res.d,
+      polygonCount: res.polygons.length,
+      operation,
+    });
+  },
+);
+
+server.tool(
+  "fastsvg_analyze_quality",
+  "Bir SVG path datasının işçilik kalitesini değerlendirir: G0/G1 teğetsel süreklilik, optik denge, görsel ağırlık ve puanlama.",
+  { d: z.string().describe("SVG path data") },
+  ({ d }) => {
+    const parsed = parsePath(d);
+    if (parsed.errors.length > 0) return fail("INVALID_OP", parsed.errors.join("; "));
+    const report = evaluateVisualQuality(parsed.segments);
+    return ok(`Görsel kalite analizi (Puan: ${report.overallScore}/100 - Not: ${report.grade})`, report);
+  },
+);
+
+// ---- 3D TURBO ARAÇLARI ----
+
+server.tool(
+  "fastsvg_render_3d",
+  "3D nesneleri (kutu, silindir, yüzen kart mockup) açı, projeksiyon, ışıklandırma ve derinlik sıralamasıyla tek komutta SVG olarak üretir.",
+  {
+    shape: z.enum(["box", "cylinder", "plane"]).describe("3D Şekil türü"),
+    dimensions: z.object({
+      width: z.number(),
+      height: z.number(),
+      depth: z.number().optional(),
+      radius: z.number().optional(),
+    }).describe("Boyutlar"),
+    color: z.string().describe("Ana renk (#hex)"),
+    projection: z.enum(["isometric", "perspective", "dimetric", "orthographic"]).optional().describe("Projeksiyon türü (varsayılan: isometric)"),
+    rotation: z.object({
+      pitch: z.number().optional(),
+      yaw: z.number().optional(),
+      roll: z.number().optional(),
+    }).optional().describe("Rotasyon açıları (derece)"),
+    scale: z.number().optional().describe("Ölçek faktörü"),
+    center: z.object({ x: z.number(), y: z.number() }).optional().describe("2D Tuval merkezi"),
+  },
+  ({ shape, dimensions, color, projection, rotation, scale, center }) => {
+    let faces;
+    if (shape === "box") {
+      faces = create3DBox({
+        width: dimensions.width,
+        height: dimensions.height,
+        depth: dimensions.depth ?? dimensions.width,
+        color,
+      });
+    } else if (shape === "cylinder") {
+      faces = create3DCylinder({
+        radius: dimensions.radius ?? dimensions.width / 2,
+        height: dimensions.height,
+        color,
+      });
+    } else {
+      faces = [create3DPlane({
+        width: dimensions.width,
+        height: dimensions.height,
+        color,
+      })];
+    }
+
+    const res = render3DFaces(faces, {
+      projection: projection ?? "isometric",
+      rotation: rotation ?? { pitch: 20, yaw: 40 },
+      scale: scale ?? 1,
+      center: center ?? { x: 200, y: 200 },
+    });
+
+    return ok(`3D ${shape} render edildi (${res.projectedFaces.length} görünür yüzey)`, {
+      svgMarkup: res.svgMarkup,
+      faceCount: res.projectedFaces.length,
+      faces: res.projectedFaces.map((f) => ({ id: f.id, litColor: f.litColor, pathD: f.pathD })),
+    });
+  },
+);
+
+// ---- TASARIM & SLAYT & WEB TURBO ARAÇLARI ----
+
+server.tool(
+  "fastsvg_compose_slide",
+  "Profesyonel 16:9 Apple Keynote / Pitch Deck kalitesinde slayt kompozisyonu üretir.",
+  {
+    title: z.string().describe("Slayt başlığı"),
+    subtitle: z.string().optional().describe("Alt açıklama"),
+    badge: z.string().optional().describe("Üst hap rozet metni (örn: ARCHITECTURE V2)"),
+    theme: z.enum(["dark", "light"]).optional().describe("Renk teması"),
+    primaryColor: z.string().optional().describe("Vurgu rengi (#hex)"),
+    with3DGraphic: z.boolean().optional().describe("Sağ tarafa 3D izometrik prizma grafiği ekle"),
+    cards: z.array(z.object({
+      title: z.string(),
+      description: z.string(),
+      value: z.string().optional(),
+      tag: z.string().optional(),
+    })).optional().describe("Alt metrik / özellik kartları"),
+    width: z.number().optional().describe("Tuval genişliği (varsayılan: 960)"),
+    height: z.number().optional().describe("Tuval yüksekliği (varsayılan: 540)"),
+  },
+  (input) => {
+    const svg = composeSlideSvg(input);
+    return ok(`Slayt kompozisyonu üretildi: ${input.title}`, { svg, width: input.width ?? 960, height: input.height ?? 540 });
+  },
+);
+
+server.tool(
+  "fastsvg_compose_web",
+  "Modern Landing Page Hero Section ve UI Mockup penceresi üretir.",
+  {
+    brandName: z.string().describe("Marka / Ürün adı"),
+    headline: z.string().describe("Ana vuruş başlığı"),
+    subheadline: z.string().describe("Açıklama cümlesi"),
+    primaryCtaText: z.string().optional().describe("Birincil CTA butonu metni"),
+    secondaryCtaText: z.string().optional().describe("İkincil buton metni"),
+    theme: z.enum(["dark", "light"]).optional().describe("Tema"),
+    primaryColor: z.string().optional().describe("Vurgu rengi (#hex)"),
+    width: z.number().optional().describe("Tuval genişliği (varsayılan: 1200)"),
+    height: z.number().optional().describe("Tuval yüksekliği (varsayılan: 675)"),
+  },
+  (input) => {
+    const svg = composeWebHeroSvg(input);
+    return ok(`Web Hero üretildi: ${input.brandName}`, { svg, width: input.width ?? 1200, height: input.height ?? 675 });
+  },
+);
+
+server.tool(
+  "fastsvg_render_chart",
+  "Modern veri infografiği üretir: Donut chart, Smooth area/wave chart, Bar chart veya Gauge meter.",
+  {
+    type: z.enum(["donut", "area", "bar", "gauge"]).describe("Grafik tipi"),
+    cx: z.number().optional().describe("Merkez X"),
+    cy: z.number().optional().describe("Merkez Y"),
+    radius: z.number().optional().describe("Yarıçap"),
+    width: z.number().optional().describe("Genişlik"),
+    height: z.number().optional().describe("Yükseklik"),
+    data: z.array(z.object({
+      label: z.string(),
+      value: z.number(),
+      color: z.string().optional(),
+    })).optional().describe("Veri listesi (donut ve bar için)"),
+    values: z.array(z.number()).optional().describe("Sayı dizisi (area chart için)"),
+    gaugeValue: z.number().min(0).max(100).optional().describe("Gauge değeri (0..100)"),
+    label: z.string().optional().describe("Etiket / başlık"),
+    color: z.string().optional().describe("Ana renk (#hex)"),
+  },
+  (input) => {
+    let svgMarkup = "";
+    if (input.type === "donut") {
+      svgMarkup = generateDonutChartSvg({
+        cx: input.cx ?? 120,
+        cy: input.cy ?? 120,
+        outerRadius: input.radius ?? 100,
+        innerRadius: (input.radius ?? 100) * 0.65,
+        data: input.data ?? [{ label: "A", value: 40 }, { label: "B", value: 60 }],
+        centerText: input.label ? { title: input.label } : undefined,
+      });
+    } else if (input.type === "area") {
+      svgMarkup = generateSmoothAreaChartSvg({
+        x: input.cx ?? 0,
+        y: input.cy ?? 0,
+        width: input.width ?? 300,
+        height: input.height ?? 120,
+        values: input.values ?? [20, 50, 35, 80, 65, 95],
+        lineColor: input.color ?? "#38bdf8",
+        dots: true,
+      });
+    } else if (input.type === "bar") {
+      svgMarkup = generateBarChartSvg({
+        x: input.cx ?? 0,
+        y: input.cy ?? 0,
+        width: input.width ?? 300,
+        height: input.height ?? 140,
+        data: input.data ?? [{ label: "1", value: 30 }, { label: "2", value: 70 }, { label: "3", value: 50 }],
+        accentColor: input.color ?? "#3b82f6",
+      });
+    } else {
+      svgMarkup = generateGaugeMeterSvg({
+        cx: input.cx ?? 120,
+        cy: input.cy ?? 120,
+        radius: input.radius ?? 90,
+        thickness: 18,
+        value: input.gaugeValue ?? 75,
+        label: input.label ?? "Performans",
+        color: input.color ?? "#38bdf8",
+      });
+    }
+
+    return ok(`Grafik (${input.type}) üretildi`, { svgMarkup, type: input.type });
+  },
+);
 
 server.tool(
   "fastsvg_create_gradient",
@@ -137,9 +346,7 @@ server.tool(
     from: z.string().describe("Başlangıç rengi, hex"),
     to: z.string().describe("Bitiş rengi, hex"),
     steps: z.number().int().min(2).max(64).optional().describe("Stop sayısı (varsayılan 6)"),
-    // linear için:
     x1: z.number().optional(), y1: z.number().optional(), x2: z.number().optional(), y2: z.number().optional(),
-    // radial için:
     cx: z.number().optional(), cy: z.number().optional(), r: z.number().optional(),
   },
   (input) => {
@@ -219,18 +426,45 @@ const TimelineSchema = z.object({
 
 server.tool(
   "fastsvg_export_apng",
-  "Sahne + timeline'dan kare kare APNG üretir ve dosyaya yazar. Animasyonlu PNG: alpha korunur, frame süreleri timeline fps'inden gelir.",
-  { documentId: z.string(), timeline: TimelineSchema, outPath: z.string(), loopCount: z.number().int().min(0).optional() },
-  ({ documentId, timeline, outPath, loopCount }) => {
+  "Sahne + timeline'dan delta-frame optimizasyonuyla kare kare APNG üretir ve dosyaya yazar.",
+  {
+    documentId: z.string(),
+    timeline: TimelineSchema,
+    outPath: z.string(),
+    loopCount: z.number().int().min(0).optional(),
+    deltaOptimize: z.boolean().optional().describe("Delta-frame dirty rect optimizasyonu (varsayılan: true)"),
+  },
+  ({ documentId, timeline, outPath, loopCount, deltaOptimize }) => {
     const doc = store.get(documentId);
     if (!doc) return fail("NODE_NOT_FOUND", `Scene not found: ${documentId}`);
     try {
       const result = renderTimelineApng(doc, timeline, loopCount ?? 0);
-      writeFileSync(outPath, result.buffer);
+      let finalBuffer = result.buffer;
+      if (deltaOptimize === false) {
+        const decoded = decodePng(result.buffer);
+        const frameSize = decoded.width * decoded.height * 4;
+        const frames = [];
+        for (let i = 0; i < decoded.frameCount; i++) {
+          frames.push({
+            rgba: decoded.rgba.slice(i * frameSize, (i + 1) * frameSize),
+            delayMs: decoded.delaysMs[i] ?? 100,
+          });
+        }
+        finalBuffer = encodeApng({
+          width: decoded.width,
+          height: decoded.height,
+          frames,
+          loopCount: decoded.loopCount,
+          deltaOptimization: false,
+        });
+      }
+
+      writeFileSync(outPath, finalBuffer);
       return ok(`APNG yazıldı: ${outPath}`, {
         frameCount: result.frameCount,
         width: result.width,
         height: result.height,
+        bytes: finalBuffer.length,
         encodeMs: Math.round(result.encodeMs),
         warnings: result.warnings,
       });
@@ -243,7 +477,7 @@ server.tool(
 
 server.tool(
   "fastsvg_compare_images",
-  "İki PNG'yi piksel bazında karşılaştırır: değişen piksel oranı, ortalama hata, değişim bölgesi.",
+  "İki PNG/APNG'yi piksel ve kare bazında karşılaştırır: frame diff, değişen piksel oranı, ortalama hata, değişim bölgesi.",
   { imageAPath: z.string(), imageBPath: z.string(), channelTolerance: z.number().min(0).max(255).optional() },
   ({ imageAPath, imageBPath, channelTolerance }) => {
     try {
@@ -255,7 +489,19 @@ server.tool(
       if (a.frameCount !== b.frameCount) {
         return fail("INVALID_OP", `Frame sayısı farklı: ${a.frameCount} vs ${b.frameCount}`);
       }
-      // Animasyonlu dosyalarda ilk kare karşılaştırılır; frame bazlı diff ayrı araçtır (v0.3).
+
+      if (a.frameCount > 1) {
+        const animReport = diffAnimationFrames(
+          a.rgba,
+          b.rgba,
+          a.width,
+          a.height,
+          a.frameCount,
+          { channelTolerance: channelTolerance ?? 2 },
+        );
+        return ok("Animasyon karşılaştırması tamamlandı", animReport);
+      }
+
       const frameBytes = a.width * a.height * 4;
       const report = diffImages(
         a.rgba.subarray(0, frameBytes),

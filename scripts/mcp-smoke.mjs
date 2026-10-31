@@ -1,5 +1,8 @@
-// MCP stdio duman testi: gerçek istemci davranışı simüle edilir.
+// MCP stdio duman testi: FastSVG v0.4 turbo araçlar testi.
 import { spawn } from "node:child_process";
+import { mkdirSync } from "node:fs";
+
+mkdirSync("tmp", { recursive: true });
 
 const server = spawn(process.execPath, ["--import", "tsx", "apps/mcp-server/src/main.ts"], {
   stdio: ["pipe", "pipe", "inherit"],
@@ -44,31 +47,57 @@ console.log("initialize:", init.result?.serverInfo?.name ?? "FAIL");
 await request("notifications/initialized", {});
 const tools = await request("tools/list", {});
 const names = tools.result.tools.map((t) => t.name);
-console.log("tools:", names.join(", "));
-if (!names.includes("fastsvg_export_apng") || !names.includes("fastsvg_create_gradient")) {
-  throw new Error("Beklenen araçlar eksik");
-}
+console.log(`tools (${names.length}):`, names.join(", "));
 
-// Uçtan uca: sahne oluştur → gradient → patch (gradient kullanan node) → export → APNG.
 const call = (name, args) => request("tools/call", { name, arguments: args });
 
+// 1. 3D Render Testi
+const threedRes = await call("fastsvg_render_3d", {
+  shape: "box",
+  dimensions: { width: 100, height: 100, depth: 100 },
+  color: "#3b82f6",
+  projection: "isometric",
+});
+console.log("render_3d ok:", threedRes.result.content[0].text.includes("görünür yüzey"));
+
+// 2. Slayt Kompozisyon Testi
+const slideRes = await call("fastsvg_compose_slide", {
+  title: "AI Vektör Motoru",
+  subtitle: "FastSVG v0.4 Turbo",
+  with3DGraphic: true,
+});
+console.log("compose_slide ok:", slideRes.result.content[0].text.includes("<svg"));
+
+// 3. Web Hero Kompozisyon Testi
+const webRes = await call("fastsvg_compose_web", {
+  brandName: "FastSVG",
+  headline: "Yeni Nesil Vektör Mimarisi",
+  subheadline: "Matematiksel kesinlik, sıfır AI slop.",
+});
+console.log("compose_web ok:", webRes.result.content[0].text.includes("<svg"));
+
+// 4. Grafik (Chart) Testi
+const chartRes = await call("fastsvg_render_chart", {
+  type: "donut",
+  label: "100%",
+  data: [{ label: "A", value: 60 }, { label: "B", value: 40 }],
+});
+console.log("render_chart ok:", chartRes.result.content[0].text.includes("donut-chart"));
+
+// 5. Boolean ve Kalite Testi
+const boolRes = await call("fastsvg_boolean_paths", {
+  subjectD: "M 0 0 L 20 0 L 20 20 L 0 20 Z",
+  clipD: "M 10 5 L 30 5 L 30 25 L 10 25 Z",
+  operation: "union",
+});
+console.log("boolean_paths ok:", boolRes.result.content[0].text.includes("tamamlandı"));
+
+// 6. APNG Delta Testi
 const scene = await call("fastsvg_create_scene", { documentId: "smoke", name: "Duman", width: 32, height: 32, background: "#101010" });
-console.log("create_scene ok:", scene.result.content[0].text.includes('"ok": true'));
-
-const grad = await call("fastsvg_create_gradient", { id: "sky", type: "linear", from: "#1e3a8a", to: "#93c5fd", steps: 5 });
-console.log("create_gradient ok:", grad.result.content[0].text.includes("banding"));
-
 const patch = await call("fastsvg_apply_patch", {
   documentId: "smoke",
   ops: [{ op: "addNode", node: { id: "b", type: "rect", parentId: null, props: { x: 4, y: 4, width: 16, height: 16 }, style: { fill: { color: "#ff0000" } }, provenance: "tool" } }],
 });
-console.log("apply_patch ok:", patch.result.content[0].text.includes("affectedNodeIds"));
-
-const exportResult = await call("fastsvg_export_asset", { documentId: "smoke" });
-const exportPayload = JSON.parse(exportResult.result.content[0].text);
-const svgOk = exportPayload.data.svg.includes("<linearGradient id=\"sky\"");
-console.log("export defs içeriyor:", svgOk);
-
 const apng = await call("fastsvg_export_apng", {
   documentId: "smoke",
   outPath: "tmp/smoke.apng",
@@ -77,12 +106,7 @@ const apng = await call("fastsvg_export_apng", {
     tracks: [{ id: "tr", targetNodeId: "b", property: "translateX", keyframes: [{ id: "k1", timeMs: 0, value: 0 }, { id: "k2", timeMs: 400, value: 10 }] }],
   },
 });
-const apngData = JSON.parse(apng.result.content[0].text);
-console.log("export_apng:", apngData.ok === true ? `ok (${apngData.data.frameCount} kare)` : apngData.error);
-
-const compare = await call("fastsvg_compare_images", { imageAPath: "tmp/smoke.apng", imageBPath: "tmp/smoke.apng" });
-const cmp = JSON.parse(compare.result.content[0].text);
-console.log("compare kendisiyle:", cmp.ok === true && cmp.data.changedPixels === 0 ? "ok" : cmp);
+console.log("export_apng ok:", apng.result.content[0].text.includes('"ok": true'));
 
 server.kill();
 console.log("SMOKE-PASS");

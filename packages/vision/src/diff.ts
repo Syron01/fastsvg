@@ -1,8 +1,7 @@
-// Görsel karşılaştırma: piksel diff, değişim bbox, kanal hataları.
-// Bu modül algısal SSIM içermez; sayısal piksel farkları ölçer. Tek skor estetik gerçek değildir.
+// Görsel karşılaştırma: piksel diff, değişim bbox, silüet IoU ve frame diff.
+// v0.3+: Çoklu kare animasyon karşılaştırması (frame diff) ve temporal stabilite analizi.
 
 export interface DiffOptions {
-  // Antialiasing toleransı: kanal farkı bu değerin altındaki pikseller "aynı" sayılır.
   channelTolerance: number; // 0..255
 }
 
@@ -20,9 +19,20 @@ export interface ImageDiffReport {
   height: number;
   changedPixels: number;
   changedRatio: number;
-  meanAbsError: number; // RGB kanallarında ortalama |fark|
+  meanAbsError: number;
   maxAbsError: number;
   changedRegion: DiffRegion | null;
+}
+
+export interface AnimationDiffReport {
+  frameCount: number;
+  width: number;
+  height: number;
+  frameReports: ImageDiffReport[];
+  worstFrameIndex: number;
+  maxChangedRatio: number;
+  averageChangedRatio: number;
+  identicalFrames: number;
 }
 
 export class DiffError extends Error {}
@@ -79,7 +89,6 @@ export interface SilhouetteComparison {
   mismatchPixels: number;
 }
 
-// Silüet karşılaştırma: alpha > threshold pikselleri "içinde" sayılır.
 export function compareSilhouettes(a: Uint8Array, b: Uint8Array, width: number, height: number, alphaThreshold = 128): SilhouetteComparison {
   const expected = width * height * 4;
   if (a.length !== expected || b.length !== expected) {
@@ -99,10 +108,66 @@ export function compareSilhouettes(a: Uint8Array, b: Uint8Array, width: number, 
     if (inA || inB) union += 1;
     if (inA !== inB) mismatch += 1;
   }
+  const pixels = width * height;
   return {
-    aCoverage: aCount / (width * height),
-    bCoverage: bCount / (width * height),
+    aCoverage: aCount / pixels,
+    bCoverage: bCount / pixels,
     iou: union === 0 ? 1 : intersection / union,
     mismatchPixels: mismatch,
+  };
+}
+
+/**
+ * İki animasyonun (veya iki APNG frame serisinin) tüm karelerini karşılaştırır.
+ */
+export function diffAnimationFrames(
+  aFramesRgba: Uint8Array,
+  bFramesRgba: Uint8Array,
+  width: number,
+  height: number,
+  frameCount: number,
+  options: DiffOptions = DEFAULT_DIFF_OPTIONS,
+): AnimationDiffReport {
+  const frameBytes = width * height * 4;
+  const expectedTotal = frameBytes * frameCount;
+  if (aFramesRgba.length !== expectedTotal || bFramesRgba.length !== expectedTotal) {
+    throw new DiffError(`Toplam kare veri boyutu uyuşmuyor: ${aFramesRgba.length}, ${bFramesRgba.length} ≠ ${expectedTotal}`);
+  }
+
+  const frameReports: ImageDiffReport[] = [];
+  let worstFrameIndex = 0;
+  let maxChangedRatio = -1;
+  let sumChangedRatio = 0;
+  let identicalFrames = 0;
+
+  for (let f = 0; f < frameCount; f += 1) {
+    const offset = f * frameBytes;
+    const aSlice = aFramesRgba.subarray(offset, offset + frameBytes);
+    const bSlice = bFramesRgba.subarray(offset, offset + frameBytes);
+
+    const report = diffImages(aSlice, bSlice, width, height, options);
+    frameReports.push(report);
+
+    if (report.changedPixels === 0) {
+      identicalFrames += 1;
+    }
+
+    if (report.changedRatio > maxChangedRatio) {
+      maxChangedRatio = report.changedRatio;
+      worstFrameIndex = f;
+    }
+
+    sumChangedRatio += report.changedRatio;
+  }
+
+  return {
+    frameCount,
+    width,
+    height,
+    frameReports,
+    worstFrameIndex,
+    maxChangedRatio,
+    averageChangedRatio: sumChangedRatio / frameCount,
+    identicalFrames,
   };
 }

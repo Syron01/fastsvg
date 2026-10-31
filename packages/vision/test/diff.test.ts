@@ -1,6 +1,6 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { diffImages, compareSilhouettes, DiffError } from "../src/index.js";
+import { diffImages, compareSilhouettes, diffAnimationFrames, DiffError } from "../src/index.js";
 
 function solid(size: number, rgb: [number, number, number], alpha = 255): Uint8Array {
   const data = new Uint8Array(size * size * 4);
@@ -34,7 +34,6 @@ test("bölgesel değişim doğru bbox üretir", () => {
   const size = 10;
   const a = solid(size, [0, 0, 0]);
   const b = solid(size, [0, 0, 0]);
-  // (3,4)'deki pikseli beyaza boya.
   b[(4 * size + 3) * 4] = 255;
   b[(4 * size + 3) * 4 + 1] = 255;
   b[(4 * size + 3) * 4 + 2] = 255;
@@ -56,7 +55,6 @@ test("silüet IoU tam örtüşmede 1, hiç örtüşmede 0", () => {
   const none = compareSilhouettes(full, empty, size, size);
   assert.equal(none.iou, 0);
   assert.equal(none.mismatchPixels, size * size);
-  // İki yarım daire ~%50 örtüşür: 0 < IoU < 1.
   const halfA = new Uint8Array(size * size * 4);
   const halfB = new Uint8Array(size * size * 4);
   for (let y = 0; y < size; y += 1) {
@@ -67,4 +65,33 @@ test("silüet IoU tam örtüşmede 1, hiç örtüşmede 0", () => {
   }
   const partial = compareSilhouettes(halfA, halfB, size, size);
   assert.ok(partial.iou > 0 && partial.iou < 1, `IoU: ${partial.iou}`);
+});
+
+test("diffAnimationFrames: Çoklu kareler arası diff ve en çok değişen kare", () => {
+  const size = 10;
+  const frameBytes = size * size * 4;
+  const frameCount = 3;
+
+  const animA = new Uint8Array(frameBytes * frameCount);
+  const animB = new Uint8Array(frameBytes * frameCount);
+
+  // Frame 0: Birebir aynı
+  // Frame 1: 5 piksel farklı
+  for (let i = 0; i < 5; i++) {
+    const idx = frameBytes + i * 4;
+    animB[idx] = 255;
+  }
+  // Frame 2: 20 piksel farklı (worst frame)
+  for (let i = 0; i < 20; i++) {
+    const idx = frameBytes * 2 + i * 4;
+    animB[idx] = 255;
+  }
+
+  const report = diffAnimationFrames(animA, animB, size, size, frameCount);
+  assert.equal(report.frameCount, 3);
+  assert.equal(report.identicalFrames, 1); // Frame 0
+  assert.equal(report.worstFrameIndex, 2); // Frame 2 en çok değişen
+  assert.equal(report.frameReports.length, 3);
+  assert.equal(report.frameReports[1]!.changedPixels, 5);
+  assert.equal(report.frameReports[2]!.changedPixels, 20);
 });
