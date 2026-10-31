@@ -11,47 +11,47 @@ export interface Vector3 {
 }
 
 export interface EulerAngles {
-  pitch?: number; // X ekseni etrafında derece
-  yaw?: number;   // Y ekseni etrafında derece
-  roll?: number;  // Z ekseni etrafında derece
+  pitch?: number | undefined;
+  yaw?: number | undefined;
+  roll?: number | undefined;
 }
 
 export type ProjectionType = "isometric" | "perspective" | "dimetric" | "orthographic";
 
 export interface CameraOptions {
-  projection?: ProjectionType;
-  distance?: number; // Perspektif için kamera mesafesi (varsayılan: 800)
-  scale?: number;    // Genel sahne ölçeği (varsayılan: 1)
-  center?: Point;    // 2D ekranda merkez noktası (varsayılan: { x: 400, y: 300 })
-  rotation?: EulerAngles; // Sahne/kamera rotasyonu
+  projection?: ProjectionType | undefined;
+  distance?: number | undefined;
+  scale?: number | undefined;
+  center?: Point | undefined;
+  rotation?: EulerAngles | undefined;
 }
 
 export interface LightSource {
-  position?: Vector3; // Işık yönü / konumu
-  ambient?: number;   // Ortam ışığı 0..1 (varsayılan: 0.3)
-  diffuse?: number;   // Difüz yoğunluk 0..1 (varsayılan: 0.7)
-  specular?: number;  // Speküler parlaklık (varsayılan: 0.2)
+  position?: Vector3 | undefined;
+  ambient?: number | undefined;
+  diffuse?: number | undefined;
+  specular?: number | undefined;
 }
 
 export interface Face3D {
-  id?: string;
+  id?: string | undefined;
   vertices: Vector3[];
   color: string;
-  strokeColor?: string;
-  strokeWidth?: number;
-  opacity?: number;
+  strokeColor?: string | undefined;
+  strokeWidth?: number | undefined;
+  opacity?: number | undefined;
 }
 
 export interface ProjectedFace {
-  id?: string;
+  id?: string | undefined;
   points2D: Point[];
   pathD: string;
   color: string;
-  strokeColor?: string;
-  strokeWidth?: number;
-  depth: number; // Z-order (Painter's algorithm için)
+  strokeColor?: string | undefined;
+  strokeWidth?: number | undefined;
+  depth: number;
   normal: Vector3;
-  litColor: string; // Işık uygulanmış final hex renk
+  litColor: string;
   isCulled: boolean;
 }
 
@@ -216,10 +216,16 @@ export function projectFace(
   // (Ortografik / izometrikte normal.z <= 0 arkaya bakar)
   const isCulled = normal.z < -1e-4;
 
+  const camWithoutRot: CameraOptions = {
+    projection: camera.projection,
+    distance: camera.distance,
+    scale: camera.scale,
+    center: camera.center,
+  };
+
   // 2D projeksiyon
   const points2D = rotatedVerts.map((v) => {
-    // Zaten rotate edildiğinden rotation: undefined ile çağır
-    return projectPoint(v, { ...camera, rotation: undefined });
+    return projectPoint(v, camWithoutRot);
   });
 
   // SVG path d stringi
