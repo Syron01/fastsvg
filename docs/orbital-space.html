@@ -1,102 +1,134 @@
 <!DOCTYPE html>
-<html lang="tr">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>FASTSVG // ORBITAL DEEP SPACE MISSION</title>
+  <title>FASTSVG // STEALTH ORBITAL DECK</title>
   <style>
     :root {
-      --bg-oled: #000000;
-      --bg-card: rgba(13, 17, 23, 0.75);
-      --border-card: rgba(56, 189, 248, 0.2);
-      --border-pill: rgba(255, 255, 255, 0.15);
-      --text-main: #f8fafc;
-      --text-muted: #94a3b8;
-      --cyan: #38bdf8;
-      --indigo: #818cf8;
-      --purple: #c084fc;
+      --bg: #000000;
+      --surface-1: #06090e;
+      --surface-2: #0c121c;
+      --surface-3: #141e2e;
+      --accent: #38bdf8;
+      --accent-subtle: rgba(56, 189, 248, 0.12);
+      --accent-glow: rgba(56, 189, 248, 0.35);
+      --white: #f8fafc;
+      --muted: #94a3b8;
+      --faint: #334155;
+      --font-mono: "SF Mono", "JetBrains Mono", Menlo, Consolas, monospace;
+      --font-sans: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
     }
+
     * { box-sizing: border-box; margin: 0; padding: 0; }
+    
     body {
-      background-color: var(--bg-oled);
-      color: var(--text-main);
-      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
+      background-color: var(--bg);
+      color: var(--white);
+      font-family: var(--font-sans);
       overflow: hidden;
       height: 100vh;
       display: flex;
       flex-direction: column;
       user-select: none;
+      -webkit-font-smoothing: antialiased;
     }
 
-    /* Yıldız Tozu & Uzay Efekti Arka Planı */
-    .space-bg {
+    /* Kusursuz Derin Atmosferik Işıklandırma (Sıfır Çizgi, Sadece Yumuşak Gradyan) */
+    .space-atmosphere {
       position: fixed;
       inset: 0;
-      background: 
-        radial-gradient(circle at 80% 20%, rgba(56, 189, 248, 0.08) 0%, transparent 45%),
-        radial-gradient(circle at 20% 80%, rgba(192, 132, 252, 0.06) 0%, transparent 50%),
+      background:
+        radial-gradient(circle at 75% 20%, rgba(56, 189, 248, 0.07) 0%, transparent 50%),
+        radial-gradient(circle at 20% 85%, rgba(30, 58, 138, 0.08) 0%, transparent 60%),
         #000000;
       z-index: 0;
       pointer-events: none;
     }
-    .space-grid {
-      position: fixed;
-      inset: 0;
-      background-image: 
-        linear-gradient(to right, rgba(255,255,255,0.02) 1px, transparent 1px),
-        linear-gradient(to bottom, rgba(255,255,255,0.02) 1px, transparent 1px);
-      background-size: 60px 60px;
-      z-index: 1;
-      pointer-events: none;
-    }
 
-    /* Üst Navigasyon Çubuğu (Cupertino Glass Pill) */
+    /* Üst Bar (Sıfır Kenar Çizgisi, Kusursuz Bulanıklık) */
     header {
       position: relative;
-      z-index: 10;
+      z-index: 30;
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 20px 48px;
+      padding: 18px 40px;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(28px);
     }
-    .brand-pill {
-      display: inline-flex;
+    .brand {
+      display: flex;
       align-items: center;
-      gap: 12px;
-      background: rgba(255, 255, 255, 0.04);
-      border: 1px solid var(--border-pill);
-      padding: 8px 18px;
-      border-radius: 9999px;
-      backdrop-filter: blur(20px);
+      gap: 14px;
     }
-    .status-dot {
+    .pulse-dot {
       width: 8px;
       height: 8px;
       border-radius: 50%;
-      background: #22c55e;
-      box-shadow: 0 0 12px #22c55e;
-      animation: pulse 2s infinite;
+      background: var(--accent);
+      box-shadow: 0 0 16px var(--accent);
+      animation: breathe 3s infinite ease-in-out;
     }
-    @keyframes pulse {
-      0%, 100% { opacity: 1; transform: scale(1); }
-      50% { opacity: 0.5; transform: scale(1.3); }
+    @keyframes breathe {
+      0%, 100% { opacity: 0.8; transform: scale(1); }
+      50% { opacity: 0.3; transform: scale(1.3); }
     }
     .brand-title {
+      font-family: var(--font-mono);
       font-size: 13px;
-      font-weight: 800;
-      letter-spacing: 1.5px;
-      color: #ffffff;
+      font-weight: 700;
+      letter-spacing: 2px;
+      color: var(--white);
+    }
+    .telemetry-strip {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--muted);
+    }
+    .telemetry-strip span b {
+      color: var(--white);
+      font-weight: 600;
+    }
+    .top-actions {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .pill-btn {
+      background: var(--surface-2);
+      border: none;
+      color: var(--white);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 600;
+      padding: 8px 18px;
+      border-radius: 9999px;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
+    }
+    .pill-btn:hover {
+      background: var(--surface-3);
+      color: var(--accent);
+      transform: translateY(-1px);
     }
 
     /* Slayt Konteyneri */
-    .deck-container {
+    .slider-viewport {
       position: relative;
-      z-index: 5;
+      z-index: 10;
       flex: 1;
       display: flex;
-      transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+      transition: transform 0.65s cubic-bezier(0.16, 1, 0.3, 1);
       width: 400vw;
-      height: calc(100vh - 160px);
+      height: calc(100vh - 140px);
     }
     .slide {
       width: 100vw;
@@ -104,384 +136,589 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 0 60px;
+      padding: 0 48px;
     }
-    .slide-content {
+    .layout-grid {
       width: 100%;
-      max-width: 1380px;
+      max-width: 1600px;
+      height: 100%;
       display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 60px;
+      grid-template-columns: 480px 1fr;
+      gap: 56px;
       align-items: center;
     }
 
-    /* Tipografi & Kartlar */
-    .badge-pill {
+    /* Sol Bilgi Paneli */
+    .tag-badge {
       display: inline-flex;
       align-items: center;
       gap: 8px;
       padding: 6px 14px;
       border-radius: 9999px;
-      background: rgba(56, 189, 248, 0.12);
-      border: 1px solid rgba(56, 189, 248, 0.3);
-      color: var(--cyan);
+      background: var(--accent-subtle);
+      color: var(--accent);
+      font-family: var(--font-mono);
       font-size: 11px;
-      font-weight: 800;
-      letter-spacing: 1.2px;
-      margin-bottom: 20px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      margin-bottom: 16px;
     }
     h1 {
-      font-size: 58px;
-      font-weight: 900;
-      line-height: 1.08;
-      letter-spacing: -1.5px;
-      margin-bottom: 20px;
-      background: linear-gradient(135deg, #ffffff 40%, var(--cyan) 100%);
+      font-size: 46px;
+      font-weight: 800;
+      line-height: 1.1;
+      letter-spacing: -1.2px;
+      margin-bottom: 16px;
+      background: linear-gradient(180deg, #ffffff 30%, #94a3b8 100%);
       -webkit-background-clip: text;
       -webkit-text-fill-color: transparent;
     }
     p.lead {
-      font-size: 18px;
-      line-height: 1.6;
-      color: var(--text-muted);
-      margin-bottom: 32px;
-      max-width: 520px;
+      font-size: 15px;
+      line-height: 1.65;
+      color: var(--muted);
+      margin-bottom: 24px;
     }
-    .stat-row {
-      display: flex;
-      gap: 20px;
+
+    /* Metrik Kartları (Tamamen Kenarlıksız, Yumuşak Zeminli Pill Tasarım) */
+    .metrics-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-bottom: 24px;
     }
-    .stat-card {
-      background: var(--bg-card);
-      border: 1px solid var(--border-pill);
-      padding: 18px 24px;
-      border-radius: 18px;
-      backdrop-filter: blur(30px);
-      flex: 1;
-      box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+    .metric-card {
+      background: var(--surface-1);
+      border-radius: 14px;
+      padding: 16px;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
+      transition: transform 0.2s ease;
     }
-    .stat-val {
-      font-size: 26px;
+    .metric-card:hover {
+      transform: translateY(-2px);
+      background: var(--surface-2);
+    }
+    .metric-num {
+      font-family: var(--font-mono);
+      font-size: 24px;
       font-weight: 800;
-      color: #ffffff;
+      color: var(--white);
       margin-bottom: 4px;
     }
-    .stat-lbl {
-      font-size: 11px;
-      color: var(--cyan);
+    .metric-caption {
+      font-family: var(--font-mono);
+      font-size: 10px;
+      color: var(--muted);
       letter-spacing: 1px;
-      font-weight: 700;
+      font-weight: 600;
     }
 
-    /* Sağ Taraf SVG Sahnesi */
-    .visual-panel {
-      position: relative;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: radial-gradient(circle at center, rgba(56, 189, 248, 0.05) 0%, transparent 70%);
-      border-radius: 32px;
-      padding: 24px;
+    .specs-card {
+      background: var(--surface-1);
+      border-radius: 14px;
+      padding: 16px 20px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--muted);
+      line-height: 1.8;
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
     }
-    .visual-panel svg {
+    .specs-card b { color: var(--white); }
+    .specs-card .hl { color: var(--accent); }
+
+    /* Sağ Vektör Sahnesi (Sıfır Çizgi, Derinlik ve Işıklandırma) */
+    .viewport-stage {
+      position: relative;
       width: 100%;
-      height: auto;
-      max-height: 480px;
-      filter: drop-shadow(0 25px 50px rgba(0, 0, 0, 0.8));
+      height: 92%;
+      max-height: 680px;
+      background: radial-gradient(circle at 50% 50%, #0a0f19 0%, #02050b 100%);
+      border-radius: 24px;
+      box-shadow: 0 40px 100px rgba(0, 0, 0, 0.95);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
     }
-
-    /* Alt Gezinme Barı (Pill Controller) */
-    footer {
-      position: relative;
-      z-index: 10;
+    .stage-header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 24px 48px;
+      padding: 16px 24px;
+      z-index: 5;
     }
-    .nav-pills {
+    .stage-mode-switch {
       display: flex;
-      gap: 12px;
-      background: rgba(255, 255, 255, 0.03);
-      border: 1px solid var(--border-pill);
-      padding: 6px 16px;
+      gap: 6px;
+      background: rgba(0, 0, 0, 0.4);
+      padding: 4px;
       border-radius: 9999px;
-      backdrop-filter: blur(20px);
     }
-    .nav-dot {
-      width: 32px;
-      height: 8px;
-      border-radius: 4px;
-      background: rgba(255, 255, 255, 0.15);
-      cursor: pointer;
-      transition: all 0.3s ease;
-    }
-    .nav-dot.active {
-      background: var(--cyan);
-      width: 56px;
-      box-shadow: 0 0 14px rgba(56, 189, 248, 0.6);
-    }
-    .btn-controls {
-      display: flex;
-      gap: 12px;
-    }
-    .btn-pill {
-      background: rgba(255, 255, 255, 0.06);
-      border: 1px solid var(--border-pill);
-      color: #ffffff;
-      padding: 10px 24px;
+    .mode-tab {
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--muted);
+      padding: 5px 14px;
       border-radius: 9999px;
-      font-size: 13px;
-      font-weight: 700;
       cursor: pointer;
       transition: all 0.2s ease;
-      backdrop-filter: blur(20px);
+      border: none;
+      background: transparent;
     }
-    .btn-pill:hover {
-      background: var(--cyan);
+    .mode-tab.active {
+      background: var(--surface-3);
+      color: var(--white);
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+    }
+
+    .canvas-container {
+      position: relative;
+      flex: 1;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: grab;
+    }
+    .canvas-container:active { cursor: grabbing; }
+
+    /* Alt Gezinme */
+    footer {
+      position: relative;
+      z-index: 30;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 40px;
+      background: rgba(0, 0, 0, 0.7);
+      backdrop-filter: blur(28px);
+    }
+    .pill-cluster {
+      display: flex;
+      gap: 8px;
+      background: var(--surface-1);
+      padding: 4px 6px;
+      border-radius: 9999px;
+    }
+    .cluster-item {
+      padding: 8px 18px;
+      border-radius: 9999px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 600;
+      color: var(--muted);
+      cursor: pointer;
+      transition: all 0.25s ease;
+    }
+    .cluster-item.active {
+      background: var(--white);
       color: #000000;
-      border-color: var(--cyan);
-      box-shadow: 0 0 20px rgba(56, 189, 248, 0.5);
+      box-shadow: 0 4px 14px rgba(255, 255, 255, 0.2);
+    }
+    .nav-buttons {
+      display: flex;
+      gap: 10px;
+    }
+    .nav-btn {
+      background: var(--surface-2);
+      border: none;
+      color: var(--white);
+      font-family: var(--font-mono);
+      font-size: 11px;
+      font-weight: 600;
+      padding: 8px 20px;
+      border-radius: 9999px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .nav-btn:hover {
+      background: var(--surface-3);
+    }
+
+    /* Tooltip Bilgi Kutusu */
+    .spec-tooltip {
+      position: absolute;
+      bottom: 24px;
+      left: 24px;
+      background: rgba(6, 9, 14, 0.95);
+      border-radius: 12px;
+      padding: 14px 18px;
+      font-family: var(--font-mono);
+      font-size: 11px;
+      color: var(--white);
+      box-shadow: 0 20px 40px rgba(0, 0, 0, 0.9);
+      pointer-events: none;
+      display: none;
+      max-width: 340px;
+      line-height: 1.6;
+    }
+    .spec-tooltip.active { display: block; }
+    .spec-tooltip-title {
+      color: var(--accent);
+      font-weight: 800;
+      font-size: 12px;
+      margin-bottom: 4px;
     }
   </style>
 </head>
 <body>
-  <div class="space-bg"></div>
-  <div class="space-grid"></div>
+  <div class="space-atmosphere"></div>
 
   <!-- Header -->
   <header>
-    <div class="brand-pill">
-      <div class="status-dot"></div>
-      <span class="brand-title">FASTSVG // ORBITAL STATION V0.4</span>
+    <div class="brand">
+      <div class="pulse-dot"></div>
+      <div class="brand-title">FASTSVG ORBITAL DECK</div>
     </div>
-    <div class="brand-pill">
-      <span style="color: var(--cyan); font-size: 11px; font-weight: 700;">MISSION TIME: T+04:18:22</span>
+    <div class="telemetry-strip">
+      <span>LEO SYNC <b>51.6°</b></span>
+      <span>ALTITUDE <b>421.8 KM</b></span>
+      <span>VELOCITY <b>7.67 KM/S</b></span>
+      <span>BETA ANGLE <b>28.4°</b></span>
+    </div>
+    <div class="top-actions">
+      <button class="pill-btn" onclick="exportCurrentSVG()">
+        <span>↓</span> EXPORT SVG
+      </button>
     </div>
   </header>
 
-  <!-- Slaytlar -->
-  <div class="deck-container" id="deck">
+  <!-- Slider -->
+  <div class="slider-viewport" id="slider">
 
-    <!-- SLIDE 1: 3D Isometric Space Station -->
+    <!-- SLIDE 1: 3D Isometric Spacecraft (Borderless, Pure Volumetric Lighting) -->
     <div class="slide">
-      <div class="slide-content">
+      <div class="layout-grid">
         <div>
-          <div class="badge-pill">DEEP SPACE TELEMETRY</div>
-          <h1>Orbital Space Station Alpha</h1>
-          <p class="lead">FastSVG 3D izometrik ve Lambertian gölgeleme motoru tarafından gerçek zamanlı analitik yüzey normalleriyle çizilen 3D uzay üssü modülü.</p>
-          <div class="stat-row">
-            <div class="stat-card">
-              <div class="stat-val">420 km</div>
-              <div class="stat-lbl">YÖRÜNGE İRTİFASI</div>
+          <div class="tag-badge">MATHEMATICAL 3D PROJECTION</div>
+          <h1>Orbital Station Alpha</h1>
+          <p class="lead">Sıfır kenar çizgisi, saf Lambertian yüzey aydınlatması ve algısal derinlik. FastSVG'nin analitik 3D motoru geometriyi çizgisiz, pürüzsüz hacimler olarak işler.</p>
+          <div class="metrics-row">
+            <div class="metric-card">
+              <div class="metric-num">100%</div>
+              <div class="metric-caption">INTEGRITY</div>
             </div>
-            <div class="stat-card">
-              <div class="stat-val">7.66 km/s</div>
-              <div class="stat-lbl">YÖRÜNGE HIZI</div>
+            <div class="metric-card">
+              <div class="metric-num">148 kW</div>
+              <div class="metric-caption">PV POWER</div>
             </div>
-            <div class="stat-card">
-              <div class="stat-val">100%</div>
-              <div class="stat-lbl">GÜÇ DENGESİ</div>
+            <div class="metric-card">
+              <div class="metric-num">294 K</div>
+              <div class="metric-caption">CABIN TEMP</div>
             </div>
           </div>
+          <div class="specs-card">
+            › <b class="hl">LIGHTING MODEL:</b> Directional diffuse ($N \cdot L$) + ambient occlusion<br/>
+            › <b class="hl">SURFACE FINISH:</b> Anodized matte titanium & GaAs photovoltaic cells<br/>
+            › <b>INTERACTION:</b> Modeli fare ile 360° serbestçe çevirebilirsiniz
+          </div>
         </div>
-        <div class="visual-panel">
-          <svg viewBox="0 0 600 450" width="100%">
-            <!-- Radial Glow -->
-            <circle cx="300" cy="220" r="180" fill="rgba(56, 189, 248, 0.12)" filter="blur(50px)"/>
-            <!-- Orbital Rings -->
-            <ellipse cx="300" cy="220" rx="270" ry="85" fill="none" stroke="rgba(56, 189, 248, 0.2)" stroke-width="1.2" stroke-dasharray="6 6"/>
-            <!-- 3D Station -->
-            <path d="M 388.18 247.07 L 630.68 247.07 L 630.68 189.65 L 388.18 189.65 Z" fill="#4495ff" stroke="#60a5fa" stroke-width="1.2" stroke-linejoin="round"/>
-<path d="M 388.18 250.35 L 630.68 250.35 L 630.68 247.07 L 388.18 247.07 Z" fill="#133490" stroke="#60a5fa" stroke-width="1.2" stroke-linejoin="round"/>
-<path d="M 388.18 192.93 L 388.18 250.35 L 388.18 247.07 L 388.18 189.65 Z" fill="#0e1f54" stroke="#60a5fa" stroke-width="1.2" stroke-linejoin="round"/>
-<path d="M 322.68 180.6 L 331.21 188.01 L 331.21 163.41 L 322.68 155.99 Z" fill="#015581" stroke="#bae6fd" stroke-width="1.2" stroke-linejoin="round"/>
-<path d="M 331.21 188.01 L 336.69 197.35 L 336.69 172.74 L 331.21 163.41 Z" fill="#014e76" stroke="#bae6fd" stroke-width="1.2" stroke-linejoin="round"/>
-<path d="M 311.92 175.84 L 322.68 180.6 L 322.68 155.99 L 311.92 151.24 Z" fill="#015986" stroke="#bae6fd" stroke-width="1.2" stroke-linejoin="round"/>
-<path d="M 336.69 197.35 L 338.58 207.7 L 338.58 183.1 L 336.69 172.74 Z" fill="#014568" stroke="#bae6fd" stroke-width="1.2" stroke-linejoin="round"/>
-<path d="M 300 174.2 L 311.92 175.84 L 311.92 151.24 L 300 149.6 Z" fill="#015987" stroke="#bae6fd" stroke-width="1.2" stroke-linejoin="round"/>
-<path d="M 338.58 207.7 L 336.69 218.05 L 336.69 193.45 L 338.58 183.1 Z" fill="#013a57" stroke="#bae6fd" stroke-width="1.2" stroke-linejoin="round"/>
-<path d="M 288.08 175.84 L 300 174.2 L 300 149.6 L 288.08 151.24 Z" fill="#015682" stroke="#bae6fd" stroke-width="1.2" stroke-linejoin="round"/>
-<path d="M 336.69 218.05 L 331.21 227.39 L 331.21 202.79 L 336.69 193.45 Z" fill="#013550" stroke="#bae6fd" stroke-width="1.2" stroke-linejoin="round"/>
-<path d="M 277.32 180.6 L 288.08 175.84 L 288.08 151.24 L 277.32 155.99 Z" fill="#015078" stroke="#bae6fd" stroke-width="1.2" stroke-linejoin="round"/>
-<path d="M 222.84 270.6 L 377.16 270.6 L 377.16 136.6 L 222.84 136.6 Z" fill="#40d9ff" stroke="#0ea5e9" stroke-width="1.5" stroke-linejoin="round"/>
-<path d="M 331.21 227.39 L 322.68 234.8 L 322.68 210.2 L 331.21 202.79 Z" fill="#013550" stroke="#bae6fd" stroke-width="1.2" stroke-linejoin="round"/>
-<path d="M 336.69 172.74 L 331.21 163.41 L 322.68 155.99 L 311.92 151.24 L 300 149.6 L 288.08 151.24 L 277.32 155.99 L 268.79 163.41 L 263.31 172.74 L 261.42 183.1 L 263.31 193.45 L 268.79 202.79 L 277.32 210.2 L 288.08 214.96 L 300 216.6 L 311.92 214.96 L 322.68 210.2 L 331.21 202.79 L 336.69 193.45 L 338.58 183.1 Z" fill="#40d9ff" stroke="#bae6fd" stroke-width="1.2" stroke-linejoin="round"/>
-<path d="M 222.84 303.4 L 377.16 303.4 L 377.16 270.6 L 222.84 270.6 Z" fill="#015885" stroke="#0ea5e9" stroke-width="1.5" stroke-linejoin="round"/>
-<path d="M 222.84 169.4 L 222.84 303.4 L 222.84 270.6 L 222.84 136.6 Z" fill="#01324d" stroke="#0ea5e9" stroke-width="1.5" stroke-linejoin="round"/>
-<path d="M -30.68 247.07 L 211.82 247.07 L 211.82 189.65 L -30.68 189.65 Z" fill="#4495ff" stroke="#60a5fa" stroke-width="1.2" stroke-linejoin="round"/>
-<path d="M -30.68 250.35 L 211.82 250.35 L 211.82 247.07 L -30.68 247.07 Z" fill="#133490" stroke="#60a5fa" stroke-width="1.2" stroke-linejoin="round"/>
-<path d="M -30.68 192.93 L -30.68 250.35 L -30.68 247.07 L -30.68 189.65 Z" fill="#0e1f54" stroke="#60a5fa" stroke-width="1.2" stroke-linejoin="round"/>
-          </svg>
+        <div class="viewport-stage">
+          <div class="stage-header">
+            <span style="font-family: var(--font-mono); font-size: 11px; color: var(--muted); font-weight: 600;">
+              3D VIEWPORT // BORDERLESS CAD
+            </span>
+            <div class="stage-mode-switch">
+              <button class="mode-tab active" onclick="setRenderMode('shaded')">SHADED</button>
+              <button class="mode-tab" onclick="setRenderMode('monochrome')">MONOCHROME</button>
+              <button class="mode-tab" onclick="setRenderMode('thermal')">THERMAL</button>
+            </div>
+          </div>
+          <div class="canvas-container" id="stationCanvas">
+            <svg id="stationSvg" viewBox="0 0 900 600" xmlns="http://www.w3.org/2000/svg" style="width:100%; height:100%;">
+              <!-- Dinamik Çizgisiz 3D SVG -->
+            </svg>
+            <div class="spec-tooltip" id="tooltip">
+              <div class="spec-tooltip-title" id="ttTitle">COMPONENT</div>
+              <div id="ttDesc">Telemetry</div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- SLIDE 2: Warp Reactor Core (3D Cylinder Stacks) & Gauge -->
+    <!-- SLIDE 2: Fusion Reactor Plasma Torus (Borderless, Atmospheric Volumetrics) -->
     <div class="slide">
-      <div class="slide-content">
+      <div class="layout-grid">
         <div>
-          <div class="badge-pill">PROPULSION DYNAMICS</div>
-          <h1>Warp Core & Reaction Chamber</h1>
-          <p class="lead">FastSVG 3D parametrik silindir motoru ve Painter derinlik sıralaması ile oluşturulmuş kuantum reaktör çekirdeği.</p>
-          <div class="stat-row">
-            <div class="stat-card">
-              <div class="stat-val">9.46 WF</div>
-              <div class="stat-lbl">WARP FAKTÖRÜ</div>
+          <div class="tag-badge">MAGNETIC CONFINEMENT</div>
+          <h1>Toroidal Fusion Core</h1>
+          <p class="lead">Sert kontur çizgileri yerine yumuşak manyetik akı alanları ve algısal plazma ışıması. Çift katmanlı grafit divertör ve süperiletken solenoid mimarisi.</p>
+          <div class="metrics-row">
+            <div class="metric-card">
+              <div class="metric-num">150 MK</div>
+              <div class="metric-caption">PLASMA TEMP</div>
             </div>
-            <div class="stat-card">
-              <div class="stat-val">1.21 GW</div>
-              <div class="stat-lbl">ÇIKIŞ GÜCÜ</div>
+            <div class="metric-card">
+              <div class="metric-num">12.8 T</div>
+              <div class="metric-caption">B-FIELD</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-num">Q = 14</div>
+              <div class="metric-caption">ENERGY GAIN</div>
             </div>
           </div>
+          <div class="specs-card">
+            › <b class="hl">MAGNETIC FLUX:</b> Nested parametric Bézier flux surfaces<br/>
+            › <b class="hl">ATMOSPHERIC BLEND:</b> OKLab perceptual color grading<br/>
+            › <b>ZERO STROKES:</b> Tüm formlar saf gradyan ve derinlik geçişleriyle tanımlandı
+          </div>
         </div>
-        <div class="visual-panel">
-          <svg viewBox="0 0 600 420" width="100%">
-            <circle cx="300" cy="210" r="160" fill="rgba(129, 140, 248, 0.15)" filter="blur(45px)"/>
-            <path d="M 334.94 176.97 L 354.57 193.51 L 353.11 179.48 L 333.49 162.94 Z" fill="#302891" stroke="#c7d2fe" stroke-width="1" stroke-linejoin="round"/>
-<path d="M 310.56 165.35 L 334.94 176.97 L 333.49 162.94 L 309.11 151.32 Z" fill="#322a97" stroke="#c7d2fe" stroke-width="1" stroke-linejoin="round"/>
-<path d="M 354.57 193.51 L 368.09 213.84 L 366.64 199.81 L 353.11 179.48 Z" fill="#2d2689" stroke="#c7d2fe" stroke-width="1" stroke-linejoin="round"/>
-<path d="M 283.08 159.43 L 310.56 165.35 L 309.11 151.32 L 281.62 145.4 Z" fill="#322a98" stroke="#c7d2fe" stroke-width="1" stroke-linejoin="round"/>
-<path d="M 368.09 213.84 L 374.6 236.57 L 373.15 222.54 L 366.64 199.81 Z" fill="#29237d" stroke="#c7d2fe" stroke-width="1" stroke-linejoin="round"/>
-<path d="M 254.37 159.63 L 283.08 159.43 L 281.62 145.4 L 252.92 145.6 Z" fill="#312995" stroke="#c7d2fe" stroke-width="1" stroke-linejoin="round"/>
-<path d="M 374.6 236.57 L 373.64 260.16 L 372.19 246.13 L 373.15 222.54 Z" fill="#251f6e" stroke="#c7d2fe" stroke-width="1" stroke-linejoin="round"/>
-<path d="M 319.85 155.67 L 336.2 169.45 L 334.38 151.92 L 318.03 138.13 Z" fill="#4749ae" stroke="#e0e7ff" stroke-width="1" stroke-linejoin="round"/>
-<path d="M 299.53 145.98 L 319.85 155.67 L 318.03 138.13 L 297.71 128.45 Z" fill="#4a4cb4" stroke="#e0e7ff" stroke-width="1" stroke-linejoin="round"/>
-<path d="M 336.2 169.45 L 347.47 186.39 L 345.65 168.86 L 334.38 151.92 Z" fill="#4345a3" stroke="#e0e7ff" stroke-width="1" stroke-linejoin="round"/>
-<path d="M 276.63 141.06 L 299.53 145.98 L 297.71 128.45 L 274.81 123.52 Z" fill="#4a4db5" stroke="#e0e7ff" stroke-width="1" stroke-linejoin="round"/>
-<path d="M 347.47 186.39 L 352.89 205.34 L 351.08 187.8 L 345.65 168.86 Z" fill="#3d3f95" stroke="#e0e7ff" stroke-width="1" stroke-linejoin="round"/>
-<path d="M 226.39 165.92 L 254.37 159.63 L 252.92 145.6 L 224.94 151.89 Z" fill="#2f278e" stroke="#c7d2fe" stroke-width="1" stroke-linejoin="round"/>
-<path d="M 373.64 260.16 L 365.29 282.99 L 363.84 268.96 L 372.19 246.13 Z" fill="#1f1a5f" stroke="#c7d2fe" stroke-width="1" stroke-linejoin="round"/>
-<path d="M 252.7 141.22 L 276.63 141.06 L 274.81 123.52 L 250.88 123.68 Z" fill="#494bb2" stroke="#e0e7ff" stroke-width="1" stroke-linejoin="round"/>
-<path d="M 352.89 205.34 L 352.1 224.99 L 350.28 207.46 L 351.08 187.8 Z" fill="#363883" stroke="#e0e7ff" stroke-width="1" stroke-linejoin="round"/>
-<path d="M 304.39 130.86 L 317.47 141.89 L 315.29 120.84 L 302.2 109.82 Z" fill="#592aab" stroke="#f3e8ff" stroke-width="1" stroke-linejoin="round"/>
-<path d="M 288.13 123.11 L 304.39 130.86 L 302.2 109.82 L 285.95 102.07 Z" fill="#5d2bb1" stroke="#f3e8ff" stroke-width="1" stroke-linejoin="round"/>
-<path d="M 317.47 141.89 L 326.49 155.44 L 324.3 134.4 L 315.29 120.84 Z" fill="#5427a0" stroke="#f3e8ff" stroke-width="1" stroke-linejoin="round"/>
-<path d="M 201.05 177.88 L 226.39 165.92 L 224.94 151.89 L 199.6 163.85 Z" fill="#2c2483" stroke="#c7d2fe" stroke-width="1" stroke-linejoin="round"/>
-<path d="M 229.39 146.46 L 252.7 141.22 L 250.88 123.68 L 227.57 128.92 Z" fill="#4648a9" stroke="#e0e7ff" stroke-width="1" stroke-linejoin="round"/>
-<path d="M 365.29 282.99 L 350.11 303.51 L 348.65 289.48 L 363.84 268.96 Z" fill="#1e195b" stroke="#c7d2fe" stroke-width="1" stroke-linejoin="round"/>
-<path d="M 352.1 224.99 L 345.14 244.02 L 343.32 226.48 L 350.28 207.46 Z" fill="#2e3071" stroke="#e0e7ff" stroke-width="1" stroke-linejoin="round"/>
-<path d="M 269.81 119.17 L 288.13 123.11 L 285.95 102.07 L 267.63 98.13 Z" fill="#5d2cb2" stroke="#f3e8ff" stroke-width="1" stroke-linejoin="round"/>
-<path d="M 326.49 155.44 L 330.82 170.6 L 328.64 149.55 L 324.3 134.4 Z" fill="#4c2492" stroke="#f3e8ff" stroke-width="1" stroke-linejoin="round"/>
-<path d="M 250.67 119.3 L 269.81 119.17 L 267.63 98.13 L 248.49 98.26 Z" fill="#5b2baf" stroke="#f3e8ff" stroke-width="1" stroke-linejoin="round"/>
-<path d="M 330.82 170.6 L 330.19 186.32 L 328 165.28 L 328.64 149.55 Z" fill="#442081" stroke="#f3e8ff" stroke-width="1" stroke-linejoin="round"/>
-<path d="M 208.27 156.43 L 229.39 146.46 L 227.57 128.92 L 206.45 138.89 Z" fill="#40429d" stroke="#e0e7ff" stroke-width="1" stroke-linejoin="round"/>
-<path d="M 345.14 244.02 L 332.48 261.12 L 330.66 243.59 L 343.32 226.48 Z" fill="#2d2e6c" stroke="#e0e7ff" stroke-width="1" stroke-linejoin="round"/>
-<path d="M 180.08 194.7 L 201.05 177.88 L 199.6 163.85 L 178.62 180.67 Z" fill="#272176" stroke="#c7d2fe" stroke-width="1" stroke-linejoin="round"/>
-<path d="M 232.02 123.5 L 250.67 119.3 L 248.49 98.26 L 229.84 102.45 Z" fill="#5729a6" stroke="#f3e8ff" stroke-width="1" stroke-linejoin="round"/>
-<path d="M 330.19 186.32 L 324.62 201.54 L 322.43 180.5 L 328 165.28 Z" fill="#3a1b6f" stroke="#f3e8ff" stroke-width="1" stroke-linejoin="round"/>
-<path d="M 373.15 222.54 L 366.64 199.81 L 353.11 179.48 L 333.49 162.94 L 309.11 151.32 L 281.62 145.4 L 252.92 145.6 L 224.94 151.89 L 199.6 163.85 L 178.62 180.67 L 163.44 201.19 L 155.08 224.03 L 154.13 247.61 L 160.63 270.34 L 174.16 290.67 L 193.78 307.21 L 218.17 318.84 L 245.65 324.75 L 274.36 324.56 L 302.34 318.26 L 327.68 306.3 L 348.65 289.48 L 363.84 268.96 L 372.19 246.13 Z" fill="#a1aeff" stroke="#c7d2fe" stroke-width="1" stroke-linejoin="round"/>
-<path d="M 190.79 170.44 L 208.27 156.43 L 206.45 138.89 L 188.97 152.91 Z" fill="#3a3c8d" stroke="#e0e7ff" stroke-width="1" stroke-linejoin="round"/>
-<path d="M 215.12 131.47 L 232.02 123.5 L 229.84 102.45 L 212.94 110.43 Z" fill="#51269a" stroke="#f3e8ff" stroke-width="1" stroke-linejoin="round"/>
-<path d="M 324.62 201.54 L 314.5 215.23 L 312.31 194.18 L 322.43 180.5 Z" fill="#381a6b" stroke="#f3e8ff" stroke-width="1" stroke-linejoin="round"/>
-<path d="M 351.08 187.8 L 345.65 168.86 L 334.38 151.92 L 318.03 138.13 L 297.71 128.45 L 274.81 123.52 L 250.88 123.68 L 227.57 128.92 L 206.45 138.89 L 188.97 152.91 L 176.32 170.01 L 169.36 189.04 L 168.56 208.69 L 173.98 227.64 L 185.25 244.58 L 201.61 258.36 L 221.93 268.05 L 244.83 272.98 L 268.75 272.81 L 292.07 267.57 L 313.18 257.6 L 330.66 243.59 L 343.32 226.48 L 350.28 207.46 Z" fill="#cde0ff" stroke="#e0e7ff" stroke-width="1" stroke-linejoin="round"/>
-<path d="M 201.14 142.68 L 215.12 131.47 L 212.94 110.43 L 198.96 121.64 Z" fill="#49228b" stroke="#f3e8ff" stroke-width="1" stroke-linejoin="round"/>
-<path d="M 328.64 149.55 L 324.3 134.4 L 315.29 120.84 L 302.2 109.82 L 285.95 102.07 L 267.63 98.13 L 248.49 98.26 L 229.84 102.45 L 212.94 110.43 L 198.96 121.64 L 188.84 135.32 L 183.27 150.54 L 182.63 166.27 L 186.97 181.42 L 195.98 194.97 L 209.07 206 L 225.32 213.75 L 243.64 217.69 L 262.78 217.56 L 281.44 213.37 L 298.33 205.39 L 312.31 194.18 L 322.43 180.5 L 328 165.28 Z" fill="#efa4ff" stroke="#f3e8ff" stroke-width="1" stroke-linejoin="round"/>
-            <g transform="translate(320, 190) scale(0.9)">
-              <g class="gauge-meter">
-  <path d="M 45 130 A 95 95 0 0 1 235 130 L 217 130 A 77 77 0 0 0 63 130 Z" fill="rgba(255,255,255,0.1)"/>
-  <path d="M 45 130 A 95 95 0 0 1 233.64 113.96 L 215.89 117 A 77 77 0 0 0 63 130 Z" fill="#38bdf8"/>
-  <text x="140" y="122" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="28" font-weight="900" fill="#ffffff">95%</text>
-  <text x="140" y="146" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12" fill="#94a3b8">WARP FACTOR 9.4</text>
-</g>
-            </g>
-          </svg>
+        <div class="viewport-stage">
+          <div class="stage-header">
+            <span style="font-family: var(--font-mono); font-size: 11px; color: var(--muted); font-weight: 600;">
+              POLOIDAL CROSS-SECTION // VOLUMETRIC GRADIENTS
+            </span>
+          </div>
+          <div class="canvas-container">
+            <svg id="fusionSvg" viewBox="0 0 900 600" xmlns="http://www.w3.org/2000/svg" style="width:100%; height:100%;">
+              <defs>
+                <radialGradient id="plasmaCoreGlow" cx="50%" cy="50%" r="50%">
+                  <stop offset="0%" stop-color="#ffffff" stop-opacity="0.95"/>
+                  <stop offset="30%" stop-color="#7dd3fc" stop-opacity="0.8"/>
+                  <stop offset="65%" stop-color="#38bdf8" stop-opacity="0.3"/>
+                  <stop offset="100%" stop-color="transparent"/>
+                </radialGradient>
+                <linearGradient id="vesselGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="#1e293b"/>
+                  <stop offset="50%" stop-color="#0f172a"/>
+                  <stop offset="100%" stop-color="#090d16"/>
+                </linearGradient>
+                <linearGradient id="coilGrad" x1="0" y1="0" x2="1" y2="0">
+                  <stop offset="0%" stop-color="#334155"/>
+                  <stop offset="100%" stop-color="#1e293b"/>
+                </linearGradient>
+                <linearGradient id="divertorGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="#475569"/>
+                  <stop offset="100%" stop-color="#1e293b"/>
+                </linearGradient>
+              </defs>
+
+              <!-- Yumuşak Vakum Odası Gövdesi (Sıfır Stroke) -->
+              <ellipse cx="450" cy="300" rx="360" ry="220" fill="url(#vesselGrad)"/>
+              <ellipse cx="450" cy="300" rx="270" ry="160" fill="#040711"/>
+
+              <!-- Merkez Manyetik Solenoid Kolonu (Sıfır Stroke, Pürüzsüz Tonlama) -->
+              <rect x="420" y="110" width="60" height="380" rx="8" fill="url(#coilGrad)"/>
+              <rect x="426" y="120" width="48" height="360" rx="4" fill="#0d1525"/>
+
+              <!-- Toroidal D-Coil Gövdeleri (Sol & Sağ) -->
+              <path d="M 400 130 C 230 130, 160 200, 160 300 C 160 400, 230 470, 400 470 L 400 500 C 200 500, 120 400, 120 300 C 120 200, 200 100, 400 100 Z" 
+                    fill="url(#coilGrad)"/>
+              <path d="M 500 130 C 670 130, 740 200, 740 300 C 740 400, 670 470, 500 470 L 500 500 C 700 500, 780 400, 780 300 C 780 200, 700 100, 500 100 Z" 
+                    fill="url(#coilGrad)"/>
+
+              <!-- Divertör Zırh Blokları -->
+              <polygon points="280,160 360,140 370,160 290,180" fill="url(#divertorGrad)"/>
+              <polygon points="620,160 540,140 530,160 610,180" fill="url(#divertorGrad)"/>
+              <polygon points="280,440 360,460 370,440 290,420" fill="url(#divertorGrad)"/>
+              <polygon points="620,440 540,460 530,440 610,420" fill="url(#divertorGrad)"/>
+
+              <!-- Plazma Işık Halesi ve Yüksek Enerji Çekirdekleri (Sıfır Çizgi) -->
+              <ellipse cx="290" cy="300" rx="95" ry="115" fill="rgba(56, 189, 248, 0.08)"/>
+              <ellipse cx="290" cy="300" rx="65" ry="85" fill="rgba(56, 189, 248, 0.18)"/>
+              <circle cx="290" cy="300" r="42" fill="url(#plasmaCoreGlow)"/>
+
+              <ellipse cx="610" cy="300" rx="95" ry="115" fill="rgba(56, 189, 248, 0.08)"/>
+              <ellipse cx="610" cy="300" rx="65" ry="85" fill="rgba(56, 189, 248, 0.18)"/>
+              <circle cx="610" cy="300" r="42" fill="url(#plasmaCoreGlow)"/>
+
+              <!-- Tipografi ve Bilgi (Zarif & Minimal) -->
+              <text x="450" y="80" text-anchor="middle" font-family="monospace" font-size="11" fill="#94a3b8">CENTRAL OHMIC SOLENOID</text>
+              <text x="290" y="490" text-anchor="middle" font-family="monospace" font-size="11" fill="#7dd3fc">D-T HOT CORE (18 keV)</text>
+              <text x="610" y="490" text-anchor="middle" font-family="monospace" font-size="11" fill="#7dd3fc">MAGNETIC APERTURE</text>
+            </svg>
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- SLIDE 3: Quantum Telemetry & Donut Chart -->
+    <!-- SLIDE 3: Tactical Minimal Radar (Borderless, Sophisticated Dark Sweep) -->
     <div class="slide">
-      <div class="slide-content">
+      <div class="layout-grid">
         <div>
-          <div class="badge-pill">ANALYTICS ENGINE</div>
-          <h1>Quantum Telemetry & Shielding</h1>
-          <p class="lead">FastSVG infografik motorunun ürettiği pürüzsüz çok katmanlı Donut Chart ve kalkan kararlılık dağılımı.</p>
-          <div class="stat-row">
-            <div class="stat-card">
-              <div class="stat-val">0.42 ms</div>
-              <div class="stat-lbl">TELEMETRİ GECİKMESİ</div>
+          <div class="tag-badge">TACTICAL TELEMETRY</div>
+          <h1>Planar Orbital Radar</h1>
+          <p class="lead">Gereksiz karmaşık daireler ve kalın çizgiler yerine, derinlik gradyanları ve temiz azimut sektörleri. Hassas yörünge takip koordinatları.</p>
+          <div class="metrics-row">
+            <div class="metric-card">
+              <div class="metric-num">128</div>
+              <div class="metric-caption">TARGETS</div>
             </div>
-            <div class="stat-card">
-              <div class="stat-val">Zero Loss</div>
-              <div class="stat-lbl">PAKET DOĞRULUĞU</div>
+            <div class="metric-card">
+              <div class="metric-num">500 km</div>
+              <div class="metric-caption">MAX RANGE</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-num">92.6 m</div>
+              <div class="metric-caption">ORBIT PERIOD</div>
             </div>
           </div>
+          <div class="specs-card">
+            › <b class="hl">RADAR APERTURE:</b> Phased array S-band 2.4 GHz<br/>
+            › <b class="hl">DEBRIS TRACKING:</b> 128 orbital objects monitored in real-time<br/>
+            › <b>ZERO CLUTTER:</b> Sadeleştirilmiş, gözü yormayan monokrom tonlama
+          </div>
         </div>
-        <div class="visual-panel">
-          <svg viewBox="0 0 540 380" width="100%">
-            <circle cx="270" cy="190" r="140" fill="rgba(192, 132, 252, 0.12)" filter="blur(40px)"/>
-            <g transform="translate(130, 50)">
-              <g class="donut-chart">
-  <path d="M 140 30 A 110 110 0 0 1 192.99 236.39 L 176.13 205.72 A 75 75 0 0 0 140 65 Z" fill="#38bdf8"><title>Dark Matter Flux: 42</title></path>
-  <path d="M 192.99 236.39 A 110 110 0 0 1 35.38 173.99 L 68.67 163.18 A 75 75 0 0 0 176.13 205.72 Z" fill="#818cf8"><title>Shield Buffer: 28</title></path>
-  <path d="M 35.38 173.99 A 110 110 0 0 1 64.7 59.81 L 88.66 85.33 A 75 75 0 0 0 68.67 163.18 Z" fill="#c084fc"><title>Quantum Thermal: 18</title></path>
-  <path d="M 64.7 59.81 A 110 110 0 0 1 140 30 L 140 65 A 75 75 0 0 0 88.66 85.33 Z" fill="#f472b6"><title>Antimatter Reserve: 12</title></path>
-  <text x="140" y="136" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="22" font-weight="800" fill="#ffffff">99.4%</text>
-  <text x="140" y="158" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12" fill="#94a3b8">STABILITY</text>
-</g>
-            </g>
-          </svg>
+        <div class="viewport-stage">
+          <div class="stage-header">
+            <span style="font-family: var(--font-mono); font-size: 11px; color: var(--muted); font-weight: 600;">
+              TACTICAL RADAR PPI // CLEAN MONO GRADIENT
+            </span>
+          </div>
+          <div class="canvas-container">
+            <svg id="radarSvg" viewBox="0 0 900 600" xmlns="http://www.w3.org/2000/svg" style="width:100%; height:100%;">
+              <defs>
+                <radialGradient id="radarField" cx="50%" cy="50%" r="50%">
+                  <stop offset="0%" stop-color="#0f172a"/>
+                  <stop offset="70%" stop-color="#060b13"/>
+                  <stop offset="100%" stop-color="#020408"/>
+                </radialGradient>
+                <radialGradient id="sweepSoftGrad" cx="50%" cy="50%" r="50%">
+                  <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.35"/>
+                  <stop offset="60%" stop-color="#0284c7" stop-opacity="0.1"/>
+                  <stop offset="100%" stop-color="transparent"/>
+                </radialGradient>
+              </defs>
+
+              <!-- Radar Zemin Diski (Sıfır Stroke) -->
+              <circle cx="450" cy="300" r="240" fill="url(#radarField)"/>
+              <circle cx="450" cy="300" r="160" fill="rgba(56, 189, 248, 0.03)"/>
+              <circle cx="450" cy="300" r="80" fill="rgba(56, 189, 248, 0.05)"/>
+
+              <!-- Yumuşak Dönen Tarama Konisi (Sıfır Çizgi) -->
+              <g transform="translate(450, 300)">
+                <path d="M 0 0 L 170 -170 A 240 240 0 0 1 240 0 Z" fill="url(#sweepSoftGrad)">
+                  <animateTransform attributeName="transform" type="rotate" from="0" to="360" dur="8s" repeatCount="indefinite"/>
+                </path>
+              </g>
+
+              <!-- Merkez İstasyon Noktası -->
+              <circle cx="450" cy="300" r="5" fill="#f8fafc"/>
+              <circle cx="450" cy="300" r="12" fill="none" stroke="rgba(255,255,255,0.2)" stroke-width="1"/>
+
+              <!-- Tespit Edilen Hedefler (Yumuşak Işık Noktaları) -->
+              <circle cx="580" cy="210" r="4" fill="#38bdf8"/>
+              <text x="592" y="214" font-family="monospace" font-size="10" fill="#f8fafc">OBJ #8429 [LEO]</text>
+              <text x="592" y="226" font-family="monospace" font-size="9" fill="#94a3b8">DIST: 164 KM</text>
+
+              <circle cx="340" cy="380" r="4" fill="#38bdf8"/>
+              <text x="240" y="384" font-family="monospace" font-size="10" fill="#f8fafc">DRAGON CRS</text>
+              <text x="240" y="396" font-family="monospace" font-size="9" fill="#94a3b8">APPROACH: 18 KM</text>
+
+              <!-- Koordinat Metinleri -->
+              <text x="450" y="85" text-anchor="middle" font-family="monospace" font-size="10" fill="#94a3b8">000° NORTH</text>
+              <text x="450" y="525" text-anchor="middle" font-family="monospace" font-size="10" fill="#94a3b8">180° SOUTH</text>
+              <text x="225" y="304" text-anchor="end" font-family="monospace" font-size="10" fill="#94a3b8">270° W</text>
+              <text x="675" y="304" text-anchor="start" font-family="monospace" font-size="10" fill="#94a3b8">090° E</text>
+            </svg>
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- SLIDE 4: Gravitational Wave Sensors & Power Bars -->
+    <!-- SLIDE 4: Environmental ECLSS & Power Dashboard (Clean Monochromatic Pill Architecture) -->
     <div class="slide">
-      <div class="slide-content">
+      <div class="layout-grid">
         <div>
-          <div class="badge-pill">SENSOR ARRAY</div>
-          <h1>Gravitational Waves & Subsystems</h1>
-          <p class="lead">Catmull-Rom'dan Cubic Bézier'e dönüştürülen dalga eğrisi ve yuvarlatılmış pill bar grafikleriyle canlı alt sistem izleme.</p>
-          <div class="stat-row">
-            <div class="stat-card">
-              <div class="stat-val">140 Hz</div>
-              <div class="stat-lbl">PULSAR REZONANSI</div>
+          <div class="tag-badge">CLOSED-LOOP LIFE SUPPORT</div>
+          <h1>ECLSS & Power Grid</h1>
+          <p class="lead">Sert çizgi ve boru diyagramları yerine modern, sofistike kart hiyerarşisi. Oksijen, su ve güç dağıtımının kesintisiz dengesi.</p>
+          <div class="metrics-row">
+            <div class="metric-card">
+              <div class="metric-num">98.4%</div>
+              <div class="metric-caption">WATER RECOVERY</div>
             </div>
-            <div class="stat-card">
-              <div class="stat-val">98.4%</div>
-              <div class="stat-lbl">ORTALAMA GÜÇ</div>
+            <div class="metric-card">
+              <div class="metric-num">21.3 kPa</div>
+              <div class="metric-caption">O₂ PRESSURE</div>
+            </div>
+            <div class="metric-card">
+              <div class="metric-num">0.32 kPa</div>
+              <div class="metric-caption">CO₂ LEVEL</div>
             </div>
           </div>
+          <div class="specs-card">
+            › <b class="hl">SABATIER REACTOR:</b> 94.6% conversion efficiency<br/>
+            › <b class="hl">POWER ARCHITECTURE:</b> Dual 120 VDC isolated regulated bus<br/>
+            › <b>BALANCE:</b> Apple HIG ve Pill Soft UI prensipleriyle tam uyumlu
+          </div>
         </div>
-        <div class="visual-panel" style="flex-direction: column; gap: 20px;">
-          <svg viewBox="0 0 540 180" width="100%">
-            <g class="smooth-area-chart">
-  <path d="M 20 154.83 C 27.58 152.24, 50.3 138.44, 65.45 139.3 C 80.61 140.17, 95.76 166.04, 110.91 160 C 126.06 153.96, 141.21 107.4, 156.36 103.09 C 171.52 98.78, 186.67 136.72, 201.82 134.13 C 216.97 131.54, 232.12 89.29, 247.27 87.57 C 262.42 85.84, 277.58 126.37, 292.73 123.78 C 307.88 121.2, 323.03 76.36, 338.18 72.04 C 353.33 67.73, 368.48 99.64, 383.64 97.91 C 398.79 96.19, 413.94 62.56, 429.09 61.7 C 444.24 60.83, 459.39 96.19, 474.55 92.74 C 489.7 89.29, 512.42 49.62, 520 41 L 520 160 L 20 160 Z" fill="rgba(56, 189, 248, 0.15)"/>
-  <path d="M 20 154.83 C 27.58 152.24, 50.3 138.44, 65.45 139.3 C 80.61 140.17, 95.76 166.04, 110.91 160 C 126.06 153.96, 141.21 107.4, 156.36 103.09 C 171.52 98.78, 186.67 136.72, 201.82 134.13 C 216.97 131.54, 232.12 89.29, 247.27 87.57 C 262.42 85.84, 277.58 126.37, 292.73 123.78 C 307.88 121.2, 323.03 76.36, 338.18 72.04 C 353.33 67.73, 368.48 99.64, 383.64 97.91 C 398.79 96.19, 413.94 62.56, 429.09 61.7 C 444.24 60.83, 459.39 96.19, 474.55 92.74 C 489.7 89.29, 512.42 49.62, 520 41" fill="none" stroke="#38bdf8" stroke-width="3" stroke-linecap="round"/>
-  <circle cx="20" cy="154.83" r="4" fill="#38bdf8" stroke="#ffffff" stroke-width="1.5"/>
-  <circle cx="65.45" cy="139.3" r="4" fill="#38bdf8" stroke="#ffffff" stroke-width="1.5"/>
-  <circle cx="110.91" cy="160" r="4" fill="#38bdf8" stroke="#ffffff" stroke-width="1.5"/>
-  <circle cx="156.36" cy="103.09" r="4" fill="#38bdf8" stroke="#ffffff" stroke-width="1.5"/>
-  <circle cx="201.82" cy="134.13" r="4" fill="#38bdf8" stroke="#ffffff" stroke-width="1.5"/>
-  <circle cx="247.27" cy="87.57" r="4" fill="#38bdf8" stroke="#ffffff" stroke-width="1.5"/>
-  <circle cx="292.73" cy="123.78" r="4" fill="#38bdf8" stroke="#ffffff" stroke-width="1.5"/>
-  <circle cx="338.18" cy="72.04" r="4" fill="#38bdf8" stroke="#ffffff" stroke-width="1.5"/>
-  <circle cx="383.64" cy="97.91" r="4" fill="#38bdf8" stroke="#ffffff" stroke-width="1.5"/>
-  <circle cx="429.09" cy="61.7" r="4" fill="#38bdf8" stroke="#ffffff" stroke-width="1.5"/>
-  <circle cx="474.55" cy="92.74" r="4" fill="#38bdf8" stroke="#ffffff" stroke-width="1.5"/>
-  <circle cx="520" cy="41" r="4" fill="#38bdf8" stroke="#ffffff" stroke-width="1.5"/>
-</g>
-          </svg>
-          <svg viewBox="0 0 540 180" width="100%">
-            <g class="bar-chart">
-  <rect x="20" y="20" width="86.4" height="112" rx="6" fill="rgba(255,255,255,0.05)"/>
-  <rect x="20" y="33.44" width="86.4" height="98.56" rx="6" fill="#38bdf8"/>
-  <text x="63.2" y="152" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11" fill="#94a3b8">ION</text>
-  <rect x="118.4" y="20" width="86.4" height="112" rx="6" fill="rgba(255,255,255,0.05)"/>
-  <rect x="118.4" y="25.6" width="86.4" height="106.4" rx="6" fill="#818cf8"/>
-  <text x="161.6" y="152" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11" fill="#94a3b8">WARP</text>
-  <rect x="216.8" y="20" width="86.4" height="112" rx="6" fill="rgba(255,255,255,0.05)"/>
-  <rect x="216.8" y="20" width="86.4" height="112" rx="6" fill="#34d399"/>
-  <text x="260" y="152" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11" fill="#94a3b8">LIFE</text>
-  <rect x="315.2" y="20" width="86.4" height="112" rx="6" fill="rgba(255,255,255,0.05)"/>
-  <rect x="315.2" y="46.88" width="86.4" height="85.12" rx="6" fill="#fbbf24"/>
-  <text x="358.4" y="152" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11" fill="#94a3b8">SHIELD</text>
-  <rect x="413.6" y="20" width="86.4" height="112" rx="6" fill="rgba(255,255,255,0.05)"/>
-  <rect x="413.6" y="28.96" width="86.4" height="103.04" rx="6" fill="#a855f7"/>
-  <text x="456.8" y="152" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11" fill="#94a3b8">COMMS</text>
-</g>
-          </svg>
+        <div class="viewport-stage">
+          <div class="stage-header">
+            <span style="font-family: var(--font-mono); font-size: 11px; color: var(--muted); font-weight: 600;">
+              TELEMETRY & FLUID GAUGES // PILL SOFT UI
+            </span>
+          </div>
+          <div class="canvas-container">
+            <svg id="eclssSvg" viewBox="0 0 900 600" xmlns="http://www.w3.org/2000/svg" style="width:100%; height:100%;">
+              <defs>
+                <linearGradient id="pillGrad1" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="#38bdf8"/>
+                  <stop offset="100%" stop-color="#0284c7"/>
+                </linearGradient>
+                <linearGradient id="pillGrad2" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="#60a5fa"/>
+                  <stop offset="100%" stop-color="#2563eb"/>
+                </linearGradient>
+                <linearGradient id="pillGrad3" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="#34d399"/>
+                  <stop offset="100%" stop-color="#059669"/>
+                </linearGradient>
+                <linearGradient id="pillGrad4" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="#fbbf24"/>
+                  <stop offset="100%" stop-color="#d97706"/>
+                </linearGradient>
+                <linearGradient id="pillGrad5" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="#a78bfa"/>
+                  <stop offset="100%" stop-color="#7c3aed"/>
+                </linearGradient>
+              </defs>
+
+              <!-- Üst Dalga Grafiği (Pürüzsüz Cubic Bézier, Sıfır Sert Çizgi) -->
+              <g transform="translate(60, 60)">
+                <path d="M 0 120 C 60 70, 120 140, 180 50 C 240 10, 300 100, 360 40 C 420 10, 480 80, 540 30 C 600 0, 660 70, 720 20 L 720 160 L 0 160 Z" 
+                      fill="rgba(56, 189, 248, 0.08)"/>
+                <path d="M 0 120 C 60 70, 120 140, 180 50 C 240 10, 300 100, 360 40 C 420 10, 480 80, 540 30 C 600 0, 660 70, 720 20" 
+                      fill="none" stroke="#38bdf8" stroke-width="2.5" stroke-linecap="round"/>
+                <text x="10" y="30" font-family="monospace" font-size="11" font-weight="700" fill="#f8fafc">POWER GRID LOAD HARMONICS</text>
+              </g>
+
+              <!-- Alt 5 Adet Sofistike Pill Sütun (Sıfır Kenar Çizgisi, Kusursuz Tonlama) -->
+              <g transform="translate(100, 280)">
+                <!-- 1. O₂ -->
+                <rect x="0" y="0" width="100" height="200" rx="16" fill="#0c121e"/>
+                <rect x="0" y="30" width="100" height="170" rx="16" fill="url(#pillGrad1)"/>
+                <text x="50" y="-12" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#f8fafc">100%</text>
+                <text x="50" y="225" text-anchor="middle" font-family="monospace" font-size="11" fill="#94a3b8">OXYGEN</text>
+
+                <!-- 2. H₂O -->
+                <rect x="140" y="0" width="100" height="200" rx="16" fill="#0c121e"/>
+                <rect x="140" y="45" width="100" height="155" rx="16" fill="url(#pillGrad2)"/>
+                <text x="190" y="-12" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#f8fafc">95%</text>
+                <text x="190" y="225" text-anchor="middle" font-family="monospace" font-size="11" fill="#94a3b8">WATER</text>
+
+                <!-- 3. PRESSURE -->
+                <rect x="280" y="0" width="100" height="200" rx="16" fill="#0c121e"/>
+                <rect x="280" y="20" width="100" height="180" rx="16" fill="url(#pillGrad3)"/>
+                <text x="330" y="-12" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#f8fafc">98%</text>
+                <text x="330" y="225" text-anchor="middle" font-family="monospace" font-size="11" fill="#94a3b8">HABITAT</text>
+
+                <!-- 4. POWER -->
+                <rect x="420" y="0" width="100" height="200" rx="16" fill="#0c121e"/>
+                <rect x="420" y="60" width="100" height="140" rx="16" fill="url(#pillGrad4)"/>
+                <text x="470" y="-12" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#f8fafc">86%</text>
+                <text x="470" y="225" text-anchor="middle" font-family="monospace" font-size="11" fill="#94a3b8">SOLAR</text>
+
+                <!-- 5. COMMS -->
+                <rect x="560" y="0" width="100" height="200" rx="16" fill="#0c121e"/>
+                <rect x="560" y="40" width="100" height="160" rx="16" fill="url(#pillGrad5)"/>
+                <text x="610" y="-12" text-anchor="middle" font-family="monospace" font-size="12" font-weight="700" fill="#f8fafc">92%</text>
+                <text x="610" y="225" text-anchor="middle" font-family="monospace" font-size="11" fill="#94a3b8">COMMS</text>
+              </g>
+            </svg>
+          </div>
         </div>
       </div>
     </div>
@@ -490,54 +727,371 @@
 
   <!-- Footer Navigasyon -->
   <footer>
-    <div class="nav-pills">
-      <div class="nav-dot active" onclick="gotoSlide(0)"></div>
-      <div class="nav-dot" onclick="gotoSlide(1)"></div>
-      <div class="nav-dot" onclick="gotoSlide(2)"></div>
-      <div class="nav-dot" onclick="gotoSlide(3)"></div>
+    <div class="pill-cluster">
+      <div class="cluster-item active" onclick="goTo(0)">01 // STATION 3D</div>
+      <div class="cluster-item" onclick="goTo(1)">02 // FUSION CORE</div>
+      <div class="cluster-item" onclick="goTo(2)">03 // TACTICAL RADAR</div>
+      <div class="cluster-item" onclick="goTo(3)">04 // ECLSS METRICS</div>
     </div>
-    <div class="btn-controls">
-      <button class="btn-pill" onclick="prevSlide()">← ÖNCEKİ</button>
-      <button class="btn-pill" onclick="nextSlide()">SONRAKİ →</button>
+    <div class="nav-buttons">
+      <button class="nav-btn" onclick="prevSlide()">← PREV</button>
+      <button class="nav-btn" onclick="nextSlide()">NEXT →</button>
     </div>
   </footer>
 
   <script>
-    let currentSlide = 0;
+    // SLIDER YÖNETİMİ
+    let currentIdx = 0;
     const totalSlides = 4;
-    const deck = document.getElementById("deck");
-    const dots = document.querySelectorAll(".nav-dot");
+    const sliderElem = document.getElementById("slider");
+    const clusterItems = document.querySelectorAll(".cluster-item");
 
-    function updateDeck() {
-      deck.style.transform = `translateX(-${currentSlide * 100}vw)`;
-      dots.forEach((d, i) => {
-        d.classList.toggle("active", i === currentSlide);
-      });
+    function updateSlider() {
+      sliderElem.style.transform = `translateX(-${currentIdx * 100}vw)`;
+      clusterItems.forEach((item, i) => item.classList.toggle("active", i === currentIdx));
     }
 
-    function gotoSlide(n) {
-      currentSlide = Math.max(0, Math.min(totalSlides - 1, n));
-      updateDeck();
+    function goTo(n) {
+      currentIdx = Math.max(0, Math.min(totalSlides - 1, n));
+      updateSlider();
     }
 
     function nextSlide() {
-      currentSlide = (currentSlide + 1) % totalSlides;
-      updateDeck();
+      currentIdx = (currentIdx + 1) % totalSlides;
+      updateSlider();
     }
 
     function prevSlide() {
-      currentSlide = (currentSlide - 1 + totalSlides) % totalSlides;
-      updateDeck();
+      currentIdx = (currentIdx - 1 + totalSlides) % totalSlides;
+      updateSlider();
     }
 
-    // Klavye Kısayolları (Sol / Sağ / Space)
     window.addEventListener("keydown", (e) => {
-      if (e.key === "ArrowRight" || e.key === " ") {
-        nextSlide();
-      } else if (e.key === "ArrowLeft") {
-        prevSlide();
-      }
+      if (e.key === "ArrowRight" || e.key === " ") nextSlide();
+      if (e.key === "ArrowLeft") prevSlide();
     });
+
+    // ----------------------------------------------------------------------------------
+    // FASTSVG BORDERLESS 3D MOTORU (Kusursuz Tonlama, Sıfır Kenar Çizgisi)
+    // ----------------------------------------------------------------------------------
+    let renderMode = "shaded"; // "shaded" | "monochrome" | "thermal"
+    let pitch = 20;
+    let yaw = -32;
+    let roll = 0;
+    let isMouseDown = false;
+    let startX = 0;
+    let startY = 0;
+
+    const stationSvg = document.getElementById("stationSvg");
+    const tooltip = document.getElementById("tooltip");
+    const ttTitle = document.getElementById("ttTitle");
+    const ttDesc = document.getElementById("ttDesc");
+
+    function setRenderMode(m) {
+      renderMode = m;
+      document.querySelectorAll(".mode-tab").forEach(tab => {
+        tab.classList.toggle("active", tab.textContent.toLowerCase() === m);
+      });
+      render3D();
+    }
+
+    function rotate3D(v, pDeg, yDeg, rDeg) {
+      const p = (pDeg * Math.PI) / 180;
+      const y = (yDeg * Math.PI) / 180;
+      const r = (rDeg * Math.PI) / 180;
+
+      let { x, y: vy, z } = v;
+
+      // X Rotasyonu
+      let y1 = vy * Math.cos(p) - z * Math.sin(p);
+      let z1 = vy * Math.sin(p) + z * Math.cos(p);
+
+      // Y Rotasyonu
+      let x2 = x * Math.cos(y) + z1 * Math.sin(y);
+      let z2 = -x * Math.sin(y) + z1 * Math.cos(y);
+
+      // Z Rotasyonu
+      let x3 = x2 * Math.cos(r) - y1 * Math.sin(r);
+      let y3 = x2 * Math.sin(r) + y1 * Math.cos(r);
+
+      return { x: x3, y: y3, z: z2 };
+    }
+
+    function project3D(v, cx = 450, cy = 300, scale = 1.3) {
+      return {
+        x: cx + v.x * scale,
+        y: cy - v.y * scale,
+        z: v.z,
+      };
+    }
+
+    // 3D Model Geometrisi (Kusursuz Hacimler)
+    function buildStationGeometry() {
+      const faces = [];
+      const segs = 10;
+      const r = 42;
+      const len = 170;
+
+      // 1. Silindirik Gövde (8 Eğimli Yüzey)
+      for (let i = 0; i < segs; i++) {
+        const a1 = (i * 2 * Math.PI) / segs;
+        const a2 = ((i + 1) * 2 * Math.PI) / segs;
+        const x1 = Math.cos(a1) * r, y1 = Math.sin(a1) * r;
+        const x2 = Math.cos(a2) * r, y2 = Math.sin(a2) * r;
+
+        faces.push({
+          id: "HABITAT",
+          name: "PRESSURIZED HABITAT MODULE",
+          desc: "Aluminium-Lithium 2195 monocoque hull. Internal atmosphere 1.01 atm.",
+          verts: [
+            { x: x1, y: y1, z: -len / 2 },
+            { x: x2, y: y2, z: -len / 2 },
+            { x: x2, y: y2, z: len / 2 },
+            { x: x1, y: y1, z: len / 2 },
+          ],
+          baseRgb: [38, 52, 75], // Mat Titanyum
+        });
+      }
+
+      // Ön Kapak
+      const frontVerts = [];
+      for (let i = 0; i < segs; i++) {
+        const a = (i * 2 * Math.PI) / segs;
+        frontVerts.push({ x: Math.cos(a) * r, y: Math.sin(a) * r, z: len / 2 });
+      }
+      faces.push({
+        id: "DOCKING_RING",
+        name: "HERMETIC DOCKING MECHANISM",
+        desc: "IDSS Standard capture ring with 12 motorized latches.",
+        verts: frontVerts,
+        baseRgb: [28, 85, 140],
+      });
+
+      // Arka Kapak
+      const backVerts = [];
+      for (let i = segs - 1; i >= 0; i--) {
+        const a = (i * 2 * Math.PI) / segs;
+        backVerts.push({ x: Math.cos(a) * r, y: Math.sin(a) * r, z: -len / 2 });
+      }
+      faces.push({
+        id: "SERVICE_RING",
+        name: "SERVICE & AVIONICS ADAPTER",
+        desc: "Power routing bus & RCS propellant manifold.",
+        verts: backVerts,
+        baseRgb: [20, 30, 48],
+      });
+
+      // 2. Kiriş (Truss Boom)
+      const trussSpan = 460;
+      const th = 14;
+      faces.push({
+        id: "TRUSS",
+        name: "INTEGRATED TRUSS STRUCTURE",
+        desc: "Ultra-rigid composite beam supporting power and thermal radiators.",
+        verts: [
+          { x: -trussSpan / 2, y: -th, z: 0 },
+          { x: trussSpan / 2, y: -th, z: 0 },
+          { x: trussSpan / 2, y: th, z: 0 },
+          { x: -trussSpan / 2, y: th, z: 0 },
+        ],
+        baseRgb: [18, 26, 40],
+      });
+
+      // 3. Sol Güneş Paneli (GaAs Blanket)
+      const pSpan = 145;
+      const pH = 80;
+      faces.push({
+        id: "SOLAR_LEFT",
+        name: "PORT PHOTOVOLTAIC WING [PV-1A]",
+        desc: "Gallium-Arsenide triple-junction cells (74 kW power generation).",
+        verts: [
+          { x: -trussSpan / 2 - pSpan, y: -pH / 2, z: 1 },
+          { x: -trussSpan / 2, y: -pH / 2, z: 1 },
+          { x: -trussSpan / 2, y: pH / 2, z: 1 },
+          { x: -trussSpan / 2 - pSpan, y: pH / 2, z: 1 },
+        ],
+        baseRgb: [2, 110, 180],
+        isSolar: true,
+      });
+
+      // 4. Sağ Güneş Paneli
+      faces.push({
+        id: "SOLAR_RIGHT",
+        name: "STARBOARD PHOTOVOLTAIC WING [PV-2B]",
+        desc: "Bifacial high-efficiency tracking solar array.",
+        verts: [
+          { x: trussSpan / 2, y: -pH / 2, z: 1 },
+          { x: trussSpan / 2 + pSpan, y: -pH / 2, z: 1 },
+          { x: trussSpan / 2 + pSpan, y: pH / 2, z: 1 },
+          { x: trussSpan / 2, y: pH / 2, z: 1 },
+        ],
+        baseRgb: [2, 110, 180],
+        isSolar: true,
+      });
+
+      // 5. Isı Tahliye Radyatörü
+      const radW = 85, radH = 60;
+      faces.push({
+        id: "RADIATOR",
+        name: "AMMONIA THERMAL RADIATOR",
+        desc: "Dual-circuit heat exchanger dissipating 42 kW of heat to deep space.",
+        verts: [
+          { x: -radW / 2, y: 65, z: -radH / 2 },
+          { x: radW / 2, y: 65, z: -radH / 2 },
+          { x: radW / 2, y: 65, z: radH / 2 },
+          { x: -radW / 2, y: 65, z: radH / 2 },
+        ],
+        baseRgb: [180, 195, 215],
+      });
+
+      return faces;
+    }
+
+    const stationGeometry = buildStationGeometry();
+
+    function render3D() {
+      const light = { x: 0.577, y: 0.577, z: 0.577 };
+      const projected = [];
+
+      stationGeometry.forEach(face => {
+        const rotated = face.verts.map(v => rotate3D(v, pitch, yaw, roll));
+        const pts2D = rotated.map(rv => project3D(rv));
+
+        // Normal Vektörü
+        const ax = rotated[1].x - rotated[0].x;
+        const ay = rotated[1].y - rotated[0].y;
+        const az = rotated[1].z - rotated[0].z;
+        const bx = rotated[2].x - rotated[0].x;
+        const by = rotated[2].y - rotated[0].y;
+        const bz = rotated[2].z - rotated[0].z;
+
+        const nx = ay * bz - az * by;
+        const ny = az * bx - ax * bz;
+        const nz = ax * by - ay * bx;
+        const len = Math.hypot(nx, ny, nz);
+        const norm = len > 1e-6 ? { x: nx / len, y: ny / len, z: nz / len } : { x: 0, y: 0, z: 1 };
+
+        // Derinlik (Ortalama Z)
+        const avgDepth = rotated.reduce((acc, v) => acc + v.z, 0) / rotated.length;
+
+        // Lambertian Shading (Diffüz + Yumuşak Ambiyans)
+        const dot = Math.max(0, norm.x * light.x + norm.y * light.y + norm.z * light.z);
+        const intensity = 0.22 + 0.78 * dot;
+
+        let fill = "";
+        if (renderMode === "shaded") {
+          const [r, g, b] = face.baseRgb;
+          const litR = Math.min(255, Math.floor(r * intensity + 15));
+          const litG = Math.min(255, Math.floor(g * intensity + 15));
+          const litB = Math.min(255, Math.floor(b * intensity + 20));
+          fill = `rgb(${litR}, ${litG}, ${litB})`;
+        } else if (renderMode === "monochrome") {
+          const lum = Math.floor(180 * intensity + 25);
+          fill = `rgb(${lum}, ${lum}, ${lum})`;
+        } else if (renderMode === "thermal") {
+          if (face.isSolar) fill = "#f43f5e";
+          else if (face.id === "RADIATOR") fill = "#38bdf8";
+          else fill = "#6366f1";
+        }
+
+        let pathD = `M ${pts2D[0].x.toFixed(1)} ${pts2D[0].y.toFixed(1)}`;
+        for (let i = 1; i < pts2D.length; i++) {
+          pathD += ` L ${pts2D[i].x.toFixed(1)} ${pts2D[i].y.toFixed(1)}`;
+        }
+        pathD += " Z";
+
+        projected.push({
+          face,
+          pathD,
+          fill,
+          depth: avgDepth,
+        });
+      });
+
+      // Painter's Algorithm: Derinliğe göre sırala
+      projected.sort((a, b) => a.depth - b.depth);
+
+      // SVG Çıktısı (Tamamen Sıfır Stroke!)
+      let out = `
+        <defs>
+          <filter id="softGlow">
+            <feGaussianBlur stdDeviation="8" result="blur"/>
+            <feComposite in="SourceGraphic" in2="blur" operator="over"/>
+          </filter>
+        </defs>
+      `;
+
+      projected.forEach(item => {
+        out += `
+          <path d="${item.pathD}" 
+                fill="${item.fill}" 
+                stroke="none"
+                style="cursor: pointer; transition: opacity 0.15s;"
+                onmouseenter="showTip('${item.face.name}', '${item.face.desc}')"
+                onmouseleave="hideTip()"/>
+        `;
+      });
+
+      stationSvg.innerHTML = out;
+    }
+
+    function showTip(title, desc) {
+      ttTitle.textContent = title;
+      ttDesc.textContent = desc;
+      tooltip.classList.add("active");
+    }
+
+    function hideTip() {
+      tooltip.classList.remove("active");
+    }
+
+    // Fare ile Döndürme
+    const canvas = document.getElementById("stationCanvas");
+    canvas.addEventListener("mousedown", (e) => {
+      isMouseDown = true;
+      startX = e.clientX;
+      startY = e.clientY;
+    });
+
+    window.addEventListener("mouseup", () => { isMouseDown = false; });
+
+    window.addEventListener("mousemove", (e) => {
+      if (!isMouseDown) return;
+      const dx = e.clientX - startX;
+      const dy = e.clientY - startY;
+      startX = e.clientX;
+      startY = e.clientY;
+
+      yaw += dx * 0.45;
+      pitch -= dy * 0.45;
+      pitch = Math.max(-85, Math.min(85, pitch));
+      render3D();
+    });
+
+    // İlk Çizim
+    render3D();
+
+    // SVG Dışa Aktarma
+    function exportCurrentSVG() {
+      let activeSvg = null;
+      if (currentIdx === 0) activeSvg = document.getElementById("stationSvg");
+      else if (currentIdx === 1) activeSvg = document.getElementById("fusionSvg");
+      else if (currentIdx === 2) activeSvg = document.getElementById("radarSvg");
+      else if (currentIdx === 3) activeSvg = document.getElementById("eclssSvg");
+
+      if (!activeSvg) return;
+
+      const xml = new XMLSerializer().serializeToString(activeSvg);
+      const blob = new Blob([xml], { type: "image/svg+xml;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `fastsvg-slide-${currentIdx + 1}.svg`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }
   </script>
 </body>
 </html>
