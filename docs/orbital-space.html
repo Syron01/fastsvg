@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FASTSVG // ORBITAL DEEP SPACE MISSION</title>
+  <style>
+    :root {
+      --bg-oled: #000000;
+      --bg-card: rgba(13, 17, 23, 0.75);
+      --border-card: rgba(56, 189, 248, 0.2);
+      --border-pill: rgba(255, 255, 255, 0.15);
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --cyan: #38bdf8;
+      --indigo: #818cf8;
+      --purple: #c084fc;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: var(--bg-oled);
+      color: var(--text-main);
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", Roboto, sans-serif;
+      overflow: hidden;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
+      user-select: none;
+    }
+
+    /* Yıldız Tozu & Uzay Efekti Arka Planı */
+    .space-bg {
+      position: fixed;
+      inset: 0;
+      background: 
+        radial-gradient(circle at 80% 20%, rgba(56, 189, 248, 0.08) 0%, transparent 45%),
+        radial-gradient(circle at 20% 80%, rgba(192, 132, 252, 0.06) 0%, transparent 50%),
+        #000000;
+      z-index: 0;
+      pointer-events: none;
+    }
+    .space-grid {
+      position: fixed;
+      inset: 0;
+      background-image: 
+        linear-gradient(to right, rgba(255,255,255,0.02) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255,255,255,0.02) 1px, transparent 1px);
+      background-size: 60px 60px;
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    /* Üst Navigasyon Çubuğu (Cupertino Glass Pill) */
+    header {
+      position: relative;
+      z-index: 10;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 48px;
+    }
+    .brand-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 12px;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--border-pill);
+      padding: 8px 18px;
+      border-radius: 9999px;
+      backdrop-filter: blur(20px);
+    }
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #22c55e;
+      box-shadow: 0 0 12px #22c55e;
+      animation: pulse 2s infinite;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(1.3); }
+    }
+    .brand-title {
+      font-size: 13px;
+      font-weight: 800;
+      letter-spacing: 1.5px;
+      color: #ffffff;
+    }
+
+    /* Slayt Konteyneri */
+    .deck-container {
+      position: relative;
+      z-index: 5;
+      flex: 1;
+      display: flex;
+      transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+      width: 400vw;
+      height: calc(100vh - 160px);
+    }
+    .slide {
+      width: 100vw;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 60px;
+    }
+    .slide-content {
+      width: 100%;
+      max-width: 1380px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 60px;
+      align-items: center;
+    }
+
+    /* Tipografi & Kartlar */
+    .badge-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 14px;
+      border-radius: 9999px;
+      background: rgba(56, 189, 248, 0.12);
+      border: 1px solid rgba(56, 189, 248, 0.3);
+      color: var(--cyan);
+      font-size: 11px;
+      font-weight: 800;
+      letter-spacing: 1.2px;
+      margin-bottom: 20px;
+    }
+    h1 {
+      font-size: 58px;
+      font-weight: 900;
+      line-height: 1.08;
+      letter-spacing: -1.5px;
+      margin-bottom: 20px;
+      background: linear-gradient(135deg, #ffffff 40%, var(--cyan) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    p.lead {
+      font-size: 18px;
+      line-height: 1.6;
+      color: var(--text-muted);
+      margin-bottom: 32px;
+      max-width: 520px;
+    }
+    .stat-row {
+      display: flex;
+      gap: 20px;
+    }
+    .stat-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-pill);
+      padding: 18px 24px;
+      border-radius: 18px;
+      backdrop-filter: blur(30px);
+      flex: 1;
+      box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+    }
+    .stat-val {
+      font-size: 26px;
+      font-weight: 800;
+      color: #ffffff;
+      margin-bottom: 4px;
+    }
+    .stat-lbl {
+      font-size: 11px;
+      color: var(--cyan);
+      letter-spacing: 1px;
+      font-weight: 700;
+    }
+
+    /* Sağ Taraf SVG Sahnesi */
+    .visual-panel {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: radial-gradient(circle at center, rgba(56, 189, 248, 0.05) 0%, transparent 70%);
+      border-radius: 32px;
+      padding: 24px;
+    }
+    .visual-panel svg {
+      width: 100%;
+      height: auto;
+      max-height: 480px;
+      filter: drop-shadow(0 25px 50px rgba(0, 0, 0, 0.8));
+    }
+
+    /* Alt Gezinme Barı (Pill Controller) */
+    footer {
+      position: relative;
+      z-index: 10;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 24px 48px;
+    }
+    .nav-pills {
+      display: flex;
+      gap: 12px;
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border-pill);
+      padding: 6px 16px;
+      border-radius: 9999px;
+      backdrop-filter: blur(20px);
+    }
+    .nav-dot {
+      width: 32px;
+      height: 8px;
+      border-radius: 4px;
+      background: rgba(255, 255, 255, 0.15);
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    .nav-dot.active {
+      background: var(--cyan);
+      width: 56px;
+      box-shadow: 0 0 14px rgba(56, 189, 248, 0.6);
+    }
+    .btn-controls {
+      display: flex;
+      gap: 12px;
+    }
+    .btn-pill {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid var(--border-pill);
+      color: #ffffff;
+      padding: 10px 24px;
+      border-radius: 9999px;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      backdrop-filter: blur(20px);
+    }
+    .btn-pill:hover {
+      background: var(--cyan);
+      color: #000000;
+      border-color: var(--cyan);
+      box-shadow: 0 0 20px rgba(56, 189, 248, 0.5);
+    }
+  </style>
+</head>
+<body>
+  <div class="space-bg"></div>
+  <div class="space-grid"></div>
+
+  <!-- Header -->
+  <header>
+    <div class="brand-pill">
+      <div class="status-dot"></div>
+      <span class="brand-title">FASTSVG // ORBITAL STATION V0.4</span>
+    </div>
+    <div class="brand-pill">
+      <span style="color: var(--cyan); font-size: 11px; font-weight: 700;">MISSION TIME: T+04:18:22</span>
+    </div>
+  </header>
+
+  <!-- Slaytlar -->
+  <div class="deck-container" id="deck">
+
+    <!-- SLIDE 1: 3D Isometric Space Station -->
+    <div class="slide">
+      <div class="slide-content">
+        <div>
+          <div class="badge-pill">DEEP SPACE TELEMETRY</div>
+          <h1>Orbital Space Station Alpha</h1>
+          <p class="lead">FastSVG 3D izometrik ve Lambertian gölgeleme motoru tarafından gerçek zamanlı analitik yüzey normalleriyle çizilen 3D uzay üssü modülü.</p>
+          <div class="stat-row">
+            <div class="stat-card">
+              <div class="stat-val">420 km</div>
+              <div class="stat-lbl">YÖRÜNGE İRTİFASI</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-val">7.66 km/s</div>
+              <div class="stat-lbl">YÖRÜNGE HIZI</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-val">100%</div>
+              <div class="stat-lbl">GÜÇ DENGESİ</div>
+            </div>
+          </div>
+        </div>
+        <div class="visual-panel">
+          <svg viewBox="0 0 600 450" width="100%">
+            <!-- Radial Glow -->
+            <circle cx="300" cy="220" r="180" fill="rgba(56, 189, 248, 0.12)" filter="blur(50px)"/>
+            <!-- Orbital Rings -->
+            <ellipse cx="300" cy="220" rx="270" ry="85" fill="none" stroke="rgba(56, 189, 248, 0.2)" stroke-width="1.2" stroke-dasharray="6 6"/>
+            <!-- 3D Station -->
+            <path d="M 388.18 247.07 L 630.68 247.07 L 630.68 189.65 L 388.18 189.65 Z" fill="#4495ff" stroke="#60a5fa" stroke-width="1.2" stroke-linejoin="round"/>
+<path d="M 388.18 250.35 L 630.68 250.35 L 630.68 247.07 L 388.18 247.07 Z" fill="#133490" stroke="#60a5fa" stroke-width="1.2" stroke-linejoin="round"/>
+<path d="M 388.18 192.93 L 388.18 250.35 L 388.18 247.07 L 388.18 189.65 Z" fill="#0e1f54" stroke="#60a5fa" stroke-width="1.2" stroke-linejoin="round"/>
+<path d="M 322.68 180.6 L 331.21 188.01 L 331.21 163.41 L 322.68 155.99 Z" fill="#015581" stroke="#bae6fd" stroke-width="1.2" stroke-linejoin="round"/>
+<path d="M 331.21 188.01 L 336.69 197.35 L 336.69 172.74 L 331.21 163.41 Z" fill="#014e76" stroke="#bae6fd" stroke-width="1.2" stroke-linejoin="round"/>
+<path d="M 311.92 175.84 L 322.68 180.6 L 322.68 155.99 L 311.92 151.24 Z" fill="#015986" stroke="#bae6fd" stroke-width="1.2" stroke-linejoin="round"/>
+<path d="M 336.69 197.35 L 338.58 207.7 L 338.58 183.1 L 336.69 172.74 Z" fill="#014568" stroke="#bae6fd" stroke-width="1.2" stroke-linejoin="round"/>
+<path d="M 300 174.2 L 311.92 175.84 L 311.92 151.24 L 300 149.6 Z" fill="#015987" stroke="#bae6fd" stroke-width="1.2" stroke-linejoin="round"/>
+<path d="M 338.58 207.7 L 336.69 218.05 L 336.69 193.45 L 338.58 183.1 Z" fill="#013a57" stroke="#bae6fd" stroke-width="1.2" stroke-linejoin="round"/>
+<path d="M 288.08 175.84 L 300 174.2 L 300 149.6 L 288.08 151.24 Z" fill="#015682" stroke="#bae6fd" stroke-width="1.2" stroke-linejoin="round"/>
+<path d="M 336.69 218.05 L 331.21 227.39 L 331.21 202.79 L 336.69 193.45 Z" fill="#013550" stroke="#bae6fd" stroke-width="1.2" stroke-linejoin="round"/>
+<path d="M 277.32 180.6 L 288.08 175.84 L 288.08 151.24 L 277.32 155.99 Z" fill="#015078" stroke="#bae6fd" stroke-width="1.2" stroke-linejoin="round"/>
+<path d="M 222.84 270.6 L 377.16 270.6 L 377.16 136.6 L 222.84 136.6 Z" fill="#40d9ff" stroke="#0ea5e9" stroke-width="1.5" stroke-linejoin="round"/>
+<path d="M 331.21 227.39 L 322.68 234.8 L 322.68 210.2 L 331.21 202.79 Z" fill="#013550" stroke="#bae6fd" stroke-width="1.2" stroke-linejoin="round"/>
+<path d="M 336.69 172.74 L 331.21 163.41 L 322.68 155.99 L 311.92 151.24 L 300 149.6 L 288.08 151.24 L 277.32 155.99 L 268.79 163.41 L 263.31 172.74 L 261.42 183.1 L 263.31 193.45 L 268.79 202.79 L 277.32 210.2 L 288.08 214.96 L 300 216.6 L 311.92 214.96 L 322.68 210.2 L 331.21 202.79 L 336.69 193.45 L 338.58 183.1 Z" fill="#40d9ff" stroke="#bae6fd" stroke-width="1.2" stroke-linejoin="round"/>
+<path d="M 222.84 303.4 L 377.16 303.4 L 377.16 270.6 L 222.84 270.6 Z" fill="#015885" stroke="#0ea5e9" stroke-width="1.5" stroke-linejoin="round"/>
+<path d="M 222.84 169.4 L 222.84 303.4 L 222.84 270.6 L 222.84 136.6 Z" fill="#01324d" stroke="#0ea5e9" stroke-width="1.5" stroke-linejoin="round"/>
+<path d="M -30.68 247.07 L 211.82 247.07 L 211.82 189.65 L -30.68 189.65 Z" fill="#4495ff" stroke="#60a5fa" stroke-width="1.2" stroke-linejoin="round"/>
+<path d="M -30.68 250.35 L 211.82 250.35 L 211.82 247.07 L -30.68 247.07 Z" fill="#133490" stroke="#60a5fa" stroke-width="1.2" stroke-linejoin="round"/>
+<path d="M -30.68 192.93 L -30.68 250.35 L -30.68 247.07 L -30.68 189.65 Z" fill="#0e1f54" stroke="#60a5fa" stroke-width="1.2" stroke-linejoin="round"/>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 2: Warp Reactor Core (3D Cylinder Stacks) & Gauge -->
+    <div class="slide">
+      <div class="slide-content">
+        <div>
+          <div class="badge-pill">PROPULSION DYNAMICS</div>
+          <h1>Warp Core & Reaction Chamber</h1>
+          <p class="lead">FastSVG 3D parametrik silindir motoru ve Painter derinlik sıralaması ile oluşturulmuş kuantum reaktör çekirdeği.</p>
+          <div class="stat-row">
+            <div class="stat-card">
+              <div class="stat-val">9.46 WF</div>
+              <div class="stat-lbl">WARP FAKTÖRÜ</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-val">1.21 GW</div>
+              <div class="stat-lbl">ÇIKIŞ GÜCÜ</div>
+            </div>
+          </div>
+        </div>
+        <div class="visual-panel">
+          <svg viewBox="0 0 600 420" width="100%">
+            <circle cx="300" cy="210" r="160" fill="rgba(129, 140, 248, 0.15)" filter="blur(45px)"/>
+            <path d="M 334.94 176.97 L 354.57 193.51 L 353.11 179.48 L 333.49 162.94 Z" fill="#302891" stroke="#c7d2fe" stroke-width="1" stroke-linejoin="round"/>
+<path d="M 310.56 165.35 L 334.94 176.97 L 333.49 162.94 L 309.11 151.32 Z" fill="#322a97" stroke="#c7d2fe" stroke-width="1" stroke-linejoin="round"/>
+<path d="M 354.57 193.51 L 368.09 213.84 L 366.64 199.81 L 353.11 179.48 Z" fill="#2d2689" stroke="#c7d2fe" stroke-width="1" stroke-linejoin="round"/>
+<path d="M 283.08 159.43 L 310.56 165.35 L 309.11 151.32 L 281.62 145.4 Z" fill="#322a98" stroke="#c7d2fe" stroke-width="1" stroke-linejoin="round"/>
+<path d="M 368.09 213.84 L 374.6 236.57 L 373.15 222.54 L 366.64 199.81 Z" fill="#29237d" stroke="#c7d2fe" stroke-width="1" stroke-linejoin="round"/>
+<path d="M 254.37 159.63 L 283.08 159.43 L 281.62 145.4 L 252.92 145.6 Z" fill="#312995" stroke="#c7d2fe" stroke-width="1" stroke-linejoin="round"/>
+<path d="M 374.6 236.57 L 373.64 260.16 L 372.19 246.13 L 373.15 222.54 Z" fill="#251f6e" stroke="#c7d2fe" stroke-width="1" stroke-linejoin="round"/>
+<path d="M 319.85 155.67 L 336.2 169.45 L 334.38 151.92 L 318.03 138.13 Z" fill="#4749ae" stroke="#e0e7ff" stroke-width="1" stroke-linejoin="round"/>
+<path d="M 299.53 145.98 L 319.85 155.67 L 318.03 138.13 L 297.71 128.45 Z" fill="#4a4cb4" stroke="#e0e7ff" stroke-width="1" stroke-linejoin="round"/>
+<path d="M 336.2 169.45 L 347.47 186.39 L 345.65 168.86 L 334.38 151.92 Z" fill="#4345a3" stroke="#e0e7ff" stroke-width="1" stroke-linejoin="round"/>
+<path d="M 276.63 141.06 L 299.53 145.98 L 297.71 128.45 L 274.81 123.52 Z" fill="#4a4db5" stroke="#e0e7ff" stroke-width="1" stroke-linejoin="round"/>
+<path d="M 347.47 186.39 L 352.89 205.34 L 351.08 187.8 L 345.65 168.86 Z" fill="#3d3f95" stroke="#e0e7ff" stroke-width="1" stroke-linejoin="round"/>
+<path d="M 226.39 165.92 L 254.37 159.63 L 252.92 145.6 L 224.94 151.89 Z" fill="#2f278e" stroke="#c7d2fe" stroke-width="1" stroke-linejoin="round"/>
+<path d="M 373.64 260.16 L 365.29 282.99 L 363.84 268.96 L 372.19 246.13 Z" fill="#1f1a5f" stroke="#c7d2fe" stroke-width="1" stroke-linejoin="round"/>
+<path d="M 252.7 141.22 L 276.63 141.06 L 274.81 123.52 L 250.88 123.68 Z" fill="#494bb2" stroke="#e0e7ff" stroke-width="1" stroke-linejoin="round"/>
+<path d="M 352.89 205.34 L 352.1 224.99 L 350.28 207.46 L 351.08 187.8 Z" fill="#363883" stroke="#e0e7ff" stroke-width="1" stroke-linejoin="round"/>
+<path d="M 304.39 130.86 L 317.47 141.89 L 315.29 120.84 L 302.2 109.82 Z" fill="#592aab" stroke="#f3e8ff" stroke-width="1" stroke-linejoin="round"/>
+<path d="M 288.13 123.11 L 304.39 130.86 L 302.2 109.82 L 285.95 102.07 Z" fill="#5d2bb1" stroke="#f3e8ff" stroke-width="1" stroke-linejoin="round"/>
+<path d="M 317.47 141.89 L 326.49 155.44 L 324.3 134.4 L 315.29 120.84 Z" fill="#5427a0" stroke="#f3e8ff" stroke-width="1" stroke-linejoin="round"/>
+<path d="M 201.05 177.88 L 226.39 165.92 L 224.94 151.89 L 199.6 163.85 Z" fill="#2c2483" stroke="#c7d2fe" stroke-width="1" stroke-linejoin="round"/>
+<path d="M 229.39 146.46 L 252.7 141.22 L 250.88 123.68 L 227.57 128.92 Z" fill="#4648a9" stroke="#e0e7ff" stroke-width="1" stroke-linejoin="round"/>
+<path d="M 365.29 282.99 L 350.11 303.51 L 348.65 289.48 L 363.84 268.96 Z" fill="#1e195b" stroke="#c7d2fe" stroke-width="1" stroke-linejoin="round"/>
+<path d="M 352.1 224.99 L 345.14 244.02 L 343.32 226.48 L 350.28 207.46 Z" fill="#2e3071" stroke="#e0e7ff" stroke-width="1" stroke-linejoin="round"/>
+<path d="M 269.81 119.17 L 288.13 123.11 L 285.95 102.07 L 267.63 98.13 Z" fill="#5d2cb2" stroke="#f3e8ff" stroke-width="1" stroke-linejoin="round"/>
+<path d="M 326.49 155.44 L 330.82 170.6 L 328.64 149.55 L 324.3 134.4 Z" fill="#4c2492" stroke="#f3e8ff" stroke-width="1" stroke-linejoin="round"/>
+<path d="M 250.67 119.3 L 269.81 119.17 L 267.63 98.13 L 248.49 98.26 Z" fill="#5b2baf" stroke="#f3e8ff" stroke-width="1" stroke-linejoin="round"/>
+<path d="M 330.82 170.6 L 330.19 186.32 L 328 165.28 L 328.64 149.55 Z" fill="#442081" stroke="#f3e8ff" stroke-width="1" stroke-linejoin="round"/>
+<path d="M 208.27 156.43 L 229.39 146.46 L 227.57 128.92 L 206.45 138.89 Z" fill="#40429d" stroke="#e0e7ff" stroke-width="1" stroke-linejoin="round"/>
+<path d="M 345.14 244.02 L 332.48 261.12 L 330.66 243.59 L 343.32 226.48 Z" fill="#2d2e6c" stroke="#e0e7ff" stroke-width="1" stroke-linejoin="round"/>
+<path d="M 180.08 194.7 L 201.05 177.88 L 199.6 163.85 L 178.62 180.67 Z" fill="#272176" stroke="#c7d2fe" stroke-width="1" stroke-linejoin="round"/>
+<path d="M 232.02 123.5 L 250.67 119.3 L 248.49 98.26 L 229.84 102.45 Z" fill="#5729a6" stroke="#f3e8ff" stroke-width="1" stroke-linejoin="round"/>
+<path d="M 330.19 186.32 L 324.62 201.54 L 322.43 180.5 L 328 165.28 Z" fill="#3a1b6f" stroke="#f3e8ff" stroke-width="1" stroke-linejoin="round"/>
+<path d="M 373.15 222.54 L 366.64 199.81 L 353.11 179.48 L 333.49 162.94 L 309.11 151.32 L 281.62 145.4 L 252.92 145.6 L 224.94 151.89 L 199.6 163.85 L 178.62 180.67 L 163.44 201.19 L 155.08 224.03 L 154.13 247.61 L 160.63 270.34 L 174.16 290.67 L 193.78 307.21 L 218.17 318.84 L 245.65 324.75 L 274.36 324.56 L 302.34 318.26 L 327.68 306.3 L 348.65 289.48 L 363.84 268.96 L 372.19 246.13 Z" fill="#a1aeff" stroke="#c7d2fe" stroke-width="1" stroke-linejoin="round"/>
+<path d="M 190.79 170.44 L 208.27 156.43 L 206.45 138.89 L 188.97 152.91 Z" fill="#3a3c8d" stroke="#e0e7ff" stroke-width="1" stroke-linejoin="round"/>
+<path d="M 215.12 131.47 L 232.02 123.5 L 229.84 102.45 L 212.94 110.43 Z" fill="#51269a" stroke="#f3e8ff" stroke-width="1" stroke-linejoin="round"/>
+<path d="M 324.62 201.54 L 314.5 215.23 L 312.31 194.18 L 322.43 180.5 Z" fill="#381a6b" stroke="#f3e8ff" stroke-width="1" stroke-linejoin="round"/>
+<path d="M 351.08 187.8 L 345.65 168.86 L 334.38 151.92 L 318.03 138.13 L 297.71 128.45 L 274.81 123.52 L 250.88 123.68 L 227.57 128.92 L 206.45 138.89 L 188.97 152.91 L 176.32 170.01 L 169.36 189.04 L 168.56 208.69 L 173.98 227.64 L 185.25 244.58 L 201.61 258.36 L 221.93 268.05 L 244.83 272.98 L 268.75 272.81 L 292.07 267.57 L 313.18 257.6 L 330.66 243.59 L 343.32 226.48 L 350.28 207.46 Z" fill="#cde0ff" stroke="#e0e7ff" stroke-width="1" stroke-linejoin="round"/>
+<path d="M 201.14 142.68 L 215.12 131.47 L 212.94 110.43 L 198.96 121.64 Z" fill="#49228b" stroke="#f3e8ff" stroke-width="1" stroke-linejoin="round"/>
+<path d="M 328.64 149.55 L 324.3 134.4 L 315.29 120.84 L 302.2 109.82 L 285.95 102.07 L 267.63 98.13 L 248.49 98.26 L 229.84 102.45 L 212.94 110.43 L 198.96 121.64 L 188.84 135.32 L 183.27 150.54 L 182.63 166.27 L 186.97 181.42 L 195.98 194.97 L 209.07 206 L 225.32 213.75 L 243.64 217.69 L 262.78 217.56 L 281.44 213.37 L 298.33 205.39 L 312.31 194.18 L 322.43 180.5 L 328 165.28 Z" fill="#efa4ff" stroke="#f3e8ff" stroke-width="1" stroke-linejoin="round"/>
+            <g transform="translate(320, 190) scale(0.9)">
+              <g class="gauge-meter">
+  <path d="M 45 130 A 95 95 0 0 1 235 130 L 217 130 A 77 77 0 0 0 63 130 Z" fill="rgba(255,255,255,0.1)"/>
+  <path d="M 45 130 A 95 95 0 0 1 233.64 113.96 L 215.89 117 A 77 77 0 0 0 63 130 Z" fill="#38bdf8"/>
+  <text x="140" y="122" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="28" font-weight="900" fill="#ffffff">95%</text>
+  <text x="140" y="146" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12" fill="#94a3b8">WARP FACTOR 9.4</text>
+</g>
+            </g>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 3: Quantum Telemetry & Donut Chart -->
+    <div class="slide">
+      <div class="slide-content">
+        <div>
+          <div class="badge-pill">ANALYTICS ENGINE</div>
+          <h1>Quantum Telemetry & Shielding</h1>
+          <p class="lead">FastSVG infografik motorunun ürettiği pürüzsüz çok katmanlı Donut Chart ve kalkan kararlılık dağılımı.</p>
+          <div class="stat-row">
+            <div class="stat-card">
+              <div class="stat-val">0.42 ms</div>
+              <div class="stat-lbl">TELEMETRİ GECİKMESİ</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-val">Zero Loss</div>
+              <div class="stat-lbl">PAKET DOĞRULUĞU</div>
+            </div>
+          </div>
+        </div>
+        <div class="visual-panel">
+          <svg viewBox="0 0 540 380" width="100%">
+            <circle cx="270" cy="190" r="140" fill="rgba(192, 132, 252, 0.12)" filter="blur(40px)"/>
+            <g transform="translate(130, 50)">
+              <g class="donut-chart">
+  <path d="M 140 30 A 110 110 0 0 1 192.99 236.39 L 176.13 205.72 A 75 75 0 0 0 140 65 Z" fill="#38bdf8"><title>Dark Matter Flux: 42</title></path>
+  <path d="M 192.99 236.39 A 110 110 0 0 1 35.38 173.99 L 68.67 163.18 A 75 75 0 0 0 176.13 205.72 Z" fill="#818cf8"><title>Shield Buffer: 28</title></path>
+  <path d="M 35.38 173.99 A 110 110 0 0 1 64.7 59.81 L 88.66 85.33 A 75 75 0 0 0 68.67 163.18 Z" fill="#c084fc"><title>Quantum Thermal: 18</title></path>
+  <path d="M 64.7 59.81 A 110 110 0 0 1 140 30 L 140 65 A 75 75 0 0 0 88.66 85.33 Z" fill="#f472b6"><title>Antimatter Reserve: 12</title></path>
+  <text x="140" y="136" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="22" font-weight="800" fill="#ffffff">99.4%</text>
+  <text x="140" y="158" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="12" fill="#94a3b8">STABILITY</text>
+</g>
+            </g>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- SLIDE 4: Gravitational Wave Sensors & Power Bars -->
+    <div class="slide">
+      <div class="slide-content">
+        <div>
+          <div class="badge-pill">SENSOR ARRAY</div>
+          <h1>Gravitational Waves & Subsystems</h1>
+          <p class="lead">Catmull-Rom'dan Cubic Bézier'e dönüştürülen dalga eğrisi ve yuvarlatılmış pill bar grafikleriyle canlı alt sistem izleme.</p>
+          <div class="stat-row">
+            <div class="stat-card">
+              <div class="stat-val">140 Hz</div>
+              <div class="stat-lbl">PULSAR REZONANSI</div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-val">98.4%</div>
+              <div class="stat-lbl">ORTALAMA GÜÇ</div>
+            </div>
+          </div>
+        </div>
+        <div class="visual-panel" style="flex-direction: column; gap: 20px;">
+          <svg viewBox="0 0 540 180" width="100%">
+            <g class="smooth-area-chart">
+  <path d="M 20 154.83 C 27.58 152.24, 50.3 138.44, 65.45 139.3 C 80.61 140.17, 95.76 166.04, 110.91 160 C 126.06 153.96, 141.21 107.4, 156.36 103.09 C 171.52 98.78, 186.67 136.72, 201.82 134.13 C 216.97 131.54, 232.12 89.29, 247.27 87.57 C 262.42 85.84, 277.58 126.37, 292.73 123.78 C 307.88 121.2, 323.03 76.36, 338.18 72.04 C 353.33 67.73, 368.48 99.64, 383.64 97.91 C 398.79 96.19, 413.94 62.56, 429.09 61.7 C 444.24 60.83, 459.39 96.19, 474.55 92.74 C 489.7 89.29, 512.42 49.62, 520 41 L 520 160 L 20 160 Z" fill="rgba(56, 189, 248, 0.15)"/>
+  <path d="M 20 154.83 C 27.58 152.24, 50.3 138.44, 65.45 139.3 C 80.61 140.17, 95.76 166.04, 110.91 160 C 126.06 153.96, 141.21 107.4, 156.36 103.09 C 171.52 98.78, 186.67 136.72, 201.82 134.13 C 216.97 131.54, 232.12 89.29, 247.27 87.57 C 262.42 85.84, 277.58 126.37, 292.73 123.78 C 307.88 121.2, 323.03 76.36, 338.18 72.04 C 353.33 67.73, 368.48 99.64, 383.64 97.91 C 398.79 96.19, 413.94 62.56, 429.09 61.7 C 444.24 60.83, 459.39 96.19, 474.55 92.74 C 489.7 89.29, 512.42 49.62, 520 41" fill="none" stroke="#38bdf8" stroke-width="3" stroke-linecap="round"/>
+  <circle cx="20" cy="154.83" r="4" fill="#38bdf8" stroke="#ffffff" stroke-width="1.5"/>
+  <circle cx="65.45" cy="139.3" r="4" fill="#38bdf8" stroke="#ffffff" stroke-width="1.5"/>
+  <circle cx="110.91" cy="160" r="4" fill="#38bdf8" stroke="#ffffff" stroke-width="1.5"/>
+  <circle cx="156.36" cy="103.09" r="4" fill="#38bdf8" stroke="#ffffff" stroke-width="1.5"/>
+  <circle cx="201.82" cy="134.13" r="4" fill="#38bdf8" stroke="#ffffff" stroke-width="1.5"/>
+  <circle cx="247.27" cy="87.57" r="4" fill="#38bdf8" stroke="#ffffff" stroke-width="1.5"/>
+  <circle cx="292.73" cy="123.78" r="4" fill="#38bdf8" stroke="#ffffff" stroke-width="1.5"/>
+  <circle cx="338.18" cy="72.04" r="4" fill="#38bdf8" stroke="#ffffff" stroke-width="1.5"/>
+  <circle cx="383.64" cy="97.91" r="4" fill="#38bdf8" stroke="#ffffff" stroke-width="1.5"/>
+  <circle cx="429.09" cy="61.7" r="4" fill="#38bdf8" stroke="#ffffff" stroke-width="1.5"/>
+  <circle cx="474.55" cy="92.74" r="4" fill="#38bdf8" stroke="#ffffff" stroke-width="1.5"/>
+  <circle cx="520" cy="41" r="4" fill="#38bdf8" stroke="#ffffff" stroke-width="1.5"/>
+</g>
+          </svg>
+          <svg viewBox="0 0 540 180" width="100%">
+            <g class="bar-chart">
+  <rect x="20" y="20" width="86.4" height="112" rx="6" fill="rgba(255,255,255,0.05)"/>
+  <rect x="20" y="33.44" width="86.4" height="98.56" rx="6" fill="#38bdf8"/>
+  <text x="63.2" y="152" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11" fill="#94a3b8">ION</text>
+  <rect x="118.4" y="20" width="86.4" height="112" rx="6" fill="rgba(255,255,255,0.05)"/>
+  <rect x="118.4" y="25.6" width="86.4" height="106.4" rx="6" fill="#818cf8"/>
+  <text x="161.6" y="152" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11" fill="#94a3b8">WARP</text>
+  <rect x="216.8" y="20" width="86.4" height="112" rx="6" fill="rgba(255,255,255,0.05)"/>
+  <rect x="216.8" y="20" width="86.4" height="112" rx="6" fill="#34d399"/>
+  <text x="260" y="152" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11" fill="#94a3b8">LIFE</text>
+  <rect x="315.2" y="20" width="86.4" height="112" rx="6" fill="rgba(255,255,255,0.05)"/>
+  <rect x="315.2" y="46.88" width="86.4" height="85.12" rx="6" fill="#fbbf24"/>
+  <text x="358.4" y="152" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11" fill="#94a3b8">SHIELD</text>
+  <rect x="413.6" y="20" width="86.4" height="112" rx="6" fill="rgba(255,255,255,0.05)"/>
+  <rect x="413.6" y="28.96" width="86.4" height="103.04" rx="6" fill="#a855f7"/>
+  <text x="456.8" y="152" text-anchor="middle" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" font-size="11" fill="#94a3b8">COMMS</text>
+</g>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Footer Navigasyon -->
+  <footer>
+    <div class="nav-pills">
+      <div class="nav-dot active" onclick="gotoSlide(0)"></div>
+      <div class="nav-dot" onclick="gotoSlide(1)"></div>
+      <div class="nav-dot" onclick="gotoSlide(2)"></div>
+      <div class="nav-dot" onclick="gotoSlide(3)"></div>
+    </div>
+    <div class="btn-controls">
+      <button class="btn-pill" onclick="prevSlide()">← ÖNCEKİ</button>
+      <button class="btn-pill" onclick="nextSlide()">SONRAKİ →</button>
+    </div>
+  </footer>
+
+  <script>
+    let currentSlide = 0;
+    const totalSlides = 4;
+    const deck = document.getElementById("deck");
+    const dots = document.querySelectorAll(".nav-dot");
+
+    function updateDeck() {
+      deck.style.transform = `translateX(-${currentSlide * 100}vw)`;
+      dots.forEach((d, i) => {
+        d.classList.toggle("active", i === currentSlide);
+      });
+    }
+
+    function gotoSlide(n) {
+      currentSlide = Math.max(0, Math.min(totalSlides - 1, n));
+      updateDeck();
+    }
+
+    function nextSlide() {
+      currentSlide = (currentSlide + 1) % totalSlides;
+      updateDeck();
+    }
+
+    function prevSlide() {
+      currentSlide = (currentSlide - 1 + totalSlides) % totalSlides;
+      updateDeck();
+    }
+
+    // Klavye Kısayolları (Sol / Sağ / Space)
+    window.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowRight" || e.key === " ") {
+        nextSlide();
+      } else if (e.key === "ArrowLeft") {
+        prevSlide();
+      }
+    });
+  </script>
+</body>
+</html>
